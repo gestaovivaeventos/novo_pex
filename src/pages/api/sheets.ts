@@ -1,15 +1,10 @@
 /**
  * API Handler para buscar dados do Google Sheets
- * Busca dados das abas de Franquias e Metas dos Clusters
+ * Busca dados da aba DEVERIA
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { google } from 'googleapis';
-
-interface SheetsData {
-  franquias: any[][];
-  metas: any[][];
-}
 
 interface ErrorResponse {
   error: string;
@@ -18,7 +13,7 @@ interface ErrorResponse {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<SheetsData | ErrorResponse>
+  res: NextApiResponse<any[][] | ErrorResponse>
 ) {
   try {
     // 1. Ler variáveis de ambiente do servidor
@@ -61,39 +56,14 @@ export default async function handler(
     // 4. Inicializar o cliente do Google Sheets
     const sheets = google.sheets({ version: 'v4', auth });
 
-    // 5. Buscar dados de múltiplas abas usando batchGet
-    const ranges = [
-      'Dados_Franquias!A:Z',
-      'Metas_Clusters!A:Z'
-    ];
-
-    const response = await sheets.spreadsheets.values.batchGet({
+    // 5. Buscar dados da aba 'DEVERIA' (colunas A até V)
+    const response = await sheets.spreadsheets.values.get({
       spreadsheetId: GOOGLE_SHEET_ID,
-      ranges: ranges,
+      range: 'DEVERIA!A:V',
     });
 
-    // 6. Extrair os dados das respostas
-    const valueRanges = response.data.valueRanges;
-
-    if (!valueRanges || valueRanges.length < 2) {
-      console.error('Dados não encontrados nas abas especificadas');
-      return res.status(500).json({
-        error: 'Dados não encontrados',
-        message: 'Não foi possível encontrar dados nas abas especificadas',
-      });
-    }
-
-    // Dados da aba 'Dados_Franquias!A:Z'
-    const dadosFranquias = valueRanges[0].values || [];
-    
-    // Dados da aba 'Metas_Clusters!A:Z'
-    const dadosMetas = valueRanges[1].values || [];
-
-    // 7. Retornar os dados em formato JSON
-    return res.status(200).json({
-      franquias: dadosFranquias,
-      metas: dadosMetas,
-    });
+    // 6. Retornar os dados em formato JSON
+    return res.status(200).json(response.data.values);
 
   } catch (error: any) {
     // Logar erro detalhado no console do servidor

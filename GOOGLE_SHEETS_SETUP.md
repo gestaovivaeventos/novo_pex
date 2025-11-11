@@ -111,15 +111,15 @@ GOOGLE_SERVICE_ACCOUNT_BASE64=eyJ0eXBlIjoic2VydmljZV9hY2NvdW50IiwicHJvamVjdF9pZC
 
 ## 📊 Estrutura Esperada das Abas
 
-### Aba: `Dados_Franquias`
+### Aba: `DEVERIA`
 
-Colunas esperadas (A:Z):
-- ID, Nome, Cluster, VVR (12 meses), MAC (12 meses), etc.
+Colunas esperadas (A até V):
+- **nm_unidade**: Nome da unidade/franquia
+- **cluster**: Cluster da franquia (CALOURO_INICIANTE, CALOURO, GRADUADO, POS_GRADUADO)
+- **Onda**: Número da onda atual
+- E outras colunas até a coluna V
 
-### Aba: `Metas_Clusters`
-
-Colunas esperadas (A:Z):
-- Cluster, Indicador, Meta, Peso, etc.
+> **Importante:** A API busca dados do range `DEVERIA!A:V`, que inclui da coluna A (nm_unidade) até a coluna V (Onda).
 
 ## 🧪 Testando a API
 
@@ -135,16 +135,11 @@ curl https://seu-dominio.vercel.app/api/sheets
 
 Resposta esperada:
 ```json
-{
-  "franquias": [
-    ["ID", "Nome", "Cluster", "..."],
-    ["1", "Franquia A", "GRADUADO", "..."]
-  ],
-  "metas": [
-    ["Cluster", "Indicador", "Meta"],
-    ["GRADUADO", "VVR", "500000"]
-  ]
-}
+[
+  ["nm_unidade", "cluster", "...", "Onda"],
+  ["Franquia A", "GRADUADO", "...", "1"],
+  ["Franquia B", "CALOURO", "...", "1"]
+]
 ```
 
 ## ❓ Troubleshooting
@@ -162,6 +157,7 @@ Resposta esperada:
 - Reinicie o servidor após adicionar/editar o `.env`
 
 ### Dados vazios retornados
-- Verifique se os nomes das abas estão corretos: `Dados_Franquias` e `Metas_Clusters`
-- Confirme que há dados nas abas da planilha
+- Verifique se o nome da aba está correto: `DEVERIA`
+- Confirme que há dados na aba da planilha
+- Verifique se as colunas vão de A até V
 - Verifique o ID da planilha na URL

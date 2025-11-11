@@ -1,6 +1,6 @@
 /**
  * Hook React para buscar dados do Google Sheets
- * Exemplo de uso do endpoint /api/sheets
+ * Busca dados da aba 'DEVERIA' (colunas A até V)
  */
 
 import { useState, useEffect } from 'react';
@@ -9,18 +9,8 @@ interface FranquiaRaw {
   [key: string]: string;
 }
 
-interface MetaRaw {
-  [key: string]: string;
-}
-
-interface SheetsData {
-  franquias: any[][];
-  metas: any[][];
-}
-
 interface UseSheetsDataReturn {
-  franquias: FranquiaRaw[];
-  metas: MetaRaw[];
+  dados: FranquiaRaw[];
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -28,10 +18,10 @@ interface UseSheetsDataReturn {
 
 /**
  * Hook para buscar e processar dados do Google Sheets
+ * Agora busca apenas a aba 'DEVERIA'
  */
 export function useSheetsData(): UseSheetsDataReturn {
-  const [franquias, setFranquias] = useState<FranquiaRaw[]>([]);
-  const [metas, setMetas] = useState<MetaRaw[]>([]);
+  const [dados, setDados] = useState<FranquiaRaw[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,16 +36,12 @@ export function useSheetsData(): UseSheetsDataReturn {
         throw new Error(`Erro ao buscar dados: ${response.statusText}`);
       }
 
-      const data: SheetsData = await response.json();
+      const rawData: any[][] = await response.json();
 
-      // Processar dados de franquias
+      // Processar dados da aba DEVERIA
       // Assume que a primeira linha são os headers
-      const franquiasProcessadas = processarDados(data.franquias);
-      setFranquias(franquiasProcessadas);
-
-      // Processar dados de metas
-      const metasProcessadas = processarDados(data.metas);
-      setMetas(metasProcessadas);
+      const dadosProcessados = processarDados(rawData);
+      setDados(dadosProcessados);
 
     } catch (err: any) {
       console.error('Erro ao buscar dados do Sheets:', err);
@@ -70,8 +56,7 @@ export function useSheetsData(): UseSheetsDataReturn {
   }, []);
 
   return {
-    franquias,
-    metas,
+    dados,
     loading,
     error,
     refetch: fetchData,
@@ -105,7 +90,7 @@ function processarDados(dados: any[][]): any[] {
 import { useSheetsData } from '@/hooks/useSheetsData';
 
 export default function DashboardPage() {
-  const { franquias, metas, loading, error, refetch } = useSheetsData();
+  const { dados, loading, error, refetch } = useSheetsData();
 
   if (loading) {
     return <div>Carregando dados...</div>;
@@ -125,22 +110,11 @@ export default function DashboardPage() {
       <h1>Dashboard PEX</h1>
       
       <section>
-        <h2>Franquias ({franquias.length})</h2>
+        <h2>Dados da aba DEVERIA ({dados.length})</h2>
         <ul>
-          {franquias.map((f, i) => (
+          {dados.map((item, i) => (
             <li key={i}>
-              {f.Nome} - Cluster: {f.Cluster}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section>
-        <h2>Metas por Cluster</h2>
-        <ul>
-          {metas.map((m, i) => (
-            <li key={i}>
-              {m.Cluster} - {m.Indicador}: {m.Meta}
+              {item.nm_unidade} - Cluster: {item.cluster}
             </li>
           ))}
         </ul>
@@ -151,3 +125,4 @@ export default function DashboardPage() {
   );
 }
 */
+
