@@ -85,6 +85,7 @@ O PEX é um programa anual (de conviva a conviva) que visa reconhecer e premiar 
 - **Backend**: Next.js API Routes, Firebase Admin
 - **Banco de Dados**: Firebase Firestore (Conta Principal Corporativa)
 - **Autenticação**: Firebase Authentication
+- **Integração**: Google Sheets API (googleapis)
 - **Analytics**: Google Analytics 4
 - **Hospedagem**: Vercel
 - **Ferramentas**: Git, npm, ESLint
@@ -151,6 +152,11 @@ FIREBASE_ADMIN_PROJECT_ID=project_id
 FIREBASE_ADMIN_CLIENT_EMAIL=service_account_email
 FIREBASE_ADMIN_PRIVATE_KEY=private_key
 
+# Google Sheets API (Backend)
+GOOGLE_SHEET_ID=id_da_planilha
+GOOGLE_SERVICE_ACCOUNT_EMAIL=service-account@projeto.iam.gserviceaccount.com
+GOOGLE_SERVICE_ACCOUNT_BASE64=base64_encoded_json
+
 # Google Analytics
 NEXT_PUBLIC_GA_MEASUREMENT_ID=GA_ID
 
@@ -163,6 +169,17 @@ NODE_ENV=production
 - Todas as credenciais devem ser obtidas do **Cofre Central de Credenciais**
 - Chaves sensíveis (Admin) devem ser acessadas apenas no servidor (não no cliente)
 - O arquivo `.env.example` deve ser mantido atualizado sem valores reais
+
+### Configuração do Google Sheets
+
+Para configurar a integração com Google Sheets, consulte o guia completo em [GOOGLE_SHEETS_SETUP.md](./GOOGLE_SHEETS_SETUP.md).
+
+**Resumo:**
+1. Criar Service Account no Google Cloud Platform
+2. Ativar Google Sheets API
+3. Compartilhar planilha com o e-mail da Service Account
+4. Codificar o JSON da Service Account em Base64
+5. Configurar as 3 variáveis de ambiente
 
 ## 📁 Estrutura do Projeto
 
@@ -180,6 +197,9 @@ novo_pex/
 │   │   └── ResumoOnda.tsx   # Resumo de onda
 │   ├── pages/               # Páginas Next.js
 │   │   └── api/            # API Routes
+│   │       └── sheets.ts   # Handler Google Sheets API
+│   ├── hooks/              # React Hooks customizados
+│   │   └── useSheetsData.ts # Hook para buscar dados do Sheets
 │   ├── styles/             # Estilos globais
 │   │   └── globals.css     # CSS global com Tailwind
 │   ├── utils/              # Funções utilitárias
@@ -194,6 +214,7 @@ novo_pex/
 ├── .env                    # Variáveis de ambiente (NÃO COMMITAR)
 ├── .env.example            # Template de variáveis
 ├── .gitignore              # Arquivos ignorados pelo Git
+├── GOOGLE_SHEETS_SETUP.md  # Guia de configuração Google Sheets
 ├── package.json            # Dependências
 ├── tsconfig.json           # Configuração TypeScript
 ├── next.config.js          # Configuração Next.js
