@@ -80,11 +80,86 @@ export default function HomePage() {
     return parseFloat(valor.toString().replace(',', '.')) || 0;
   }, [itemSelecionado]);
 
+  // Calcular ranking na rede (posição geral na onda)
+  const rankingRede = useMemo(() => {
+    if (!dadosBrutos || !filtroOnda || !itemSelecionado) return { posicao: 0, total: 0 };
+
+    // Filtrar apenas unidades da onda selecionada
+    const unidadesDaOnda = dadosBrutos.filter(item => item.ONDA === filtroOnda);
+    
+    // Ordenar por pontuação (decrescente)
+    const ranking = unidadesDaOnda
+      .map(item => ({
+        unidade: item.nm_unidade,
+        pontuacao: parseFloat((item['Pontuação com bonus'] || item['Pontuação com Bonus'] || '0').toString().replace(',', '.')) || 0
+      }))
+      .sort((a, b) => b.pontuacao - a.pontuacao);
+
+    // Encontrar posição da unidade selecionada
+    const posicao = ranking.findIndex(item => item.unidade === filtroUnidade) + 1;
+
+    return { posicao, total: ranking.length };
+  }, [dadosBrutos, filtroOnda, filtroUnidade, itemSelecionado]);
+
+  // Calcular ranking no cluster (posição dentro do cluster na onda)
+  const rankingCluster = useMemo(() => {
+    if (!dadosBrutos || !filtroOnda || !itemSelecionado || !itemSelecionado.cluster) {
+      return { posicao: 0, total: 0 };
+    }
+
+    // Filtrar unidades da mesma onda E mesmo cluster
+    const unidadesDoCluster = dadosBrutos.filter(
+      item => item.ONDA === filtroOnda && item.cluster === itemSelecionado.cluster
+    );
+
+    // Ordenar por pontuação (decrescente)
+    const ranking = unidadesDoCluster
+      .map(item => ({
+        unidade: item.nm_unidade,
+        pontuacao: parseFloat((item['Pontuação com bonus'] || item['Pontuação com Bonus'] || '0').toString().replace(',', '.')) || 0
+      }))
+      .sort((a, b) => b.pontuacao - a.pontuacao);
+
+    // Encontrar posição da unidade selecionada
+    const posicao = ranking.findIndex(item => item.unidade === filtroUnidade) + 1;
+
+    return { posicao, total: ranking.length };
+  }, [dadosBrutos, filtroOnda, filtroUnidade, itemSelecionado]);
+
   // Dados para o gráfico de rosca (Gauge)
   const dadosGrafico = [
     { name: 'score', value: pontuacao },
     { name: 'restante', value: Math.max(0, 100 - pontuacao) }
   ];
+
+  // Calcular pontuação média por onda (para os 4 gráficos)
+  const pontuacoesPorOnda = useMemo(() => {
+    if (!dadosBrutos || dadosBrutos.length === 0) return [];
+
+    // Agrupar por onda e calcular média
+    const ondas = ['1', '2', '3', '4']; // Assumindo 4 ondas
+    
+    return ondas.map(onda => {
+      const unidadesDaOnda = dadosBrutos.filter(item => item.ONDA === onda);
+      
+      if (unidadesDaOnda.length === 0) {
+        return { onda, media: 0, total: 0 };
+      }
+
+      const somaTotal = unidadesDaOnda.reduce((acc, item) => {
+        const pontos = parseFloat((item['Pontuação com bonus'] || item['Pontuação com Bonus'] || '0').toString().replace(',', '.')) || 0;
+        return acc + pontos;
+      }, 0);
+
+      const media = somaTotal / unidadesDaOnda.length;
+
+      return {
+        onda,
+        media: Math.round(media * 100) / 100,
+        total: unidadesDaOnda.length
+      };
+    });
+  }, [dadosBrutos]);
 
   // Inicializar filtros quando os dados carregarem
   React.useEffect(() => {
@@ -102,12 +177,12 @@ export default function HomePage() {
   // Estado de Loading
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{ backgroundColor: '#212529' }}>
         <Header />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600 text-lg">Carregando...</p>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto" style={{ borderColor: '#FF6600' }}></div>
+            <p className="mt-4 text-lg" style={{ color: '#adb5bd' }}>Carregando...</p>
           </div>
         </div>
       </div>
@@ -117,16 +192,16 @@ export default function HomePage() {
   // Estado de Erro
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{ backgroundColor: '#212529' }}>
         <Header />
         <div className="flex items-center justify-center h-96">
           <Card className="max-w-md">
             <div className="text-center">
-              <div className="text-red-500 text-5xl mb-4">⚠️</div>
-              <h2 className="text-xl font-bold text-gray-800 mb-2">
+              <div className="text-5xl mb-4" style={{ color: '#FF6600' }}>⚠️</div>
+              <h2 className="text-xl font-bold mb-2" style={{ color: '#F8F9FA' }}>
                 Erro ao carregar dados
               </h2>
-              <p className="text-gray-600">{error}</p>
+              <p style={{ color: '#adb5bd' }}>{error}</p>
             </div>
           </Card>
         </div>
@@ -135,19 +210,20 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: '#212529' }}>
       {/* Header */}
       <Header usuario="Administrador" />
 
       {/* Conteúdo Principal */}
       <main className="container mx-auto px-4 py-8">
         {/* Filtros */}
-        <div className="flex gap-4 p-4 mb-6 bg-white rounded-lg shadow">
+        <div className="flex gap-4 p-4 mb-6 rounded-lg shadow" style={{ backgroundColor: '#343A40' }}>
           {/* Filtro de Onda */}
           <div className="flex-1">
             <label
               htmlFor="filtro-onda"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium mb-2"
+              style={{ color: '#adb5bd' }}
             >
               Selecione a Onda
             </label>
@@ -173,7 +249,8 @@ export default function HomePage() {
           <div className="flex-1">
             <label
               htmlFor="filtro-unidade"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium mb-2"
+              style={{ color: '#adb5bd' }}
             >
               Selecione a Unidade
             </label>
@@ -261,17 +338,36 @@ export default function HomePage() {
                 </div>
                 <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
                   <span style={{ color: '#adb5bd' }}>Pontuação Total:</span>
-                  <span className="font-semibold" style={{ color: '#FF6600' }}>
+                  <span className="font-semibold" style={{ color: '#FF6600', fontSize: '1.1rem' }}>
                     {pontuacao.toFixed(2)}
                   </span>
                 </div>
+                
+                {/* Ranking na Rede */}
+                <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
+                  <span style={{ color: '#adb5bd' }}>Posição na Rede:</span>
+                  <span className="font-semibold" style={{ color: '#F8F9FA' }}>
+                    {rankingRede.posicao}º de {rankingRede.total}
+                  </span>
+                </div>
+
                 {itemSelecionado.cluster && (
-                  <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
-                    <span style={{ color: '#adb5bd' }}>Cluster:</span>
-                    <span className="font-semibold" style={{ color: '#F8F9FA' }}>
-                      {itemSelecionado.cluster}
-                    </span>
-                  </div>
+                  <>
+                    <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
+                      <span style={{ color: '#adb5bd' }}>Cluster:</span>
+                      <span className="font-semibold" style={{ color: '#F8F9FA' }}>
+                        {itemSelecionado.cluster}
+                      </span>
+                    </div>
+                    
+                    {/* Ranking no Cluster */}
+                    <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
+                      <span style={{ color: '#adb5bd' }}>Posição no Cluster:</span>
+                      <span className="font-semibold" style={{ color: '#F8F9FA' }}>
+                        {rankingCluster.posicao}º de {rankingCluster.total}
+                      </span>
+                    </div>
+                  </>
                 )}
               </div>
             </Card>
@@ -279,51 +375,80 @@ export default function HomePage() {
         ) : (
           <Card>
             <div className="text-center py-12">
-              <div className="text-gray-400 text-6xl mb-4">📊</div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              <div className="text-6xl mb-4" style={{ color: '#555' }}>📊</div>
+              <h3 className="text-xl font-semibold mb-2" style={{ color: '#F8F9FA' }}>
                 Selecione uma Onda e Unidade
               </h3>
-              <p className="text-gray-500">
+              <p style={{ color: '#adb5bd' }}>
                 Use os filtros acima para visualizar a pontuação
               </p>
             </div>
           </Card>
         )}
 
-        {/* Informações Adicionais */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <div className="text-center">
-              <p className="text-gray-600 text-sm uppercase tracking-wide mb-2">
-                Total de Registros
-              </p>
-              <p className="text-3xl font-bold text-primary-600">
-                {dadosBrutos.length}
-              </p>
-            </div>
-          </Card>
+        {/* Gráficos de Pontuação por Onda */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-6" style={{ 
+            color: '#adb5bd', 
+            fontFamily: 'Poppins, sans-serif',
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            borderBottom: '2px solid #FF6600',
+            paddingBottom: '8px'
+          }}>
+            Pontuação Média por Onda
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {pontuacoesPorOnda.map((ondaData) => {
+              const dadosGraficoOnda = [
+                { name: 'score', value: ondaData.media },
+                { name: 'restante', value: Math.max(0, 100 - ondaData.media) }
+              ];
 
-          <Card>
-            <div className="text-center">
-              <p className="text-gray-600 text-sm uppercase tracking-wide mb-2">
-                Ondas Disponíveis
-              </p>
-              <p className="text-3xl font-bold text-green-600">
-                {listaOndas.length}
-              </p>
-            </div>
-          </Card>
+              return (
+                <Card key={ondaData.onda} titulo={`Onda ${ondaData.onda}`}>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <PieChart>
+                      <Pie
+                        data={dadosGraficoOnda}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={70}
+                        startAngle={90}
+                        endAngle={-270}
+                        dataKey="value"
+                      >
+                        <Cell fill="#FF6600" />
+                        <Cell fill="#555" />
+                        
+                        <Label
+                          value={ondaData.media.toFixed(2)}
+                          position="center"
+                          style={{ 
+                            fontSize: '1.8rem', 
+                            fontWeight: 'bold',
+                            fill: '#F8F9FA',
+                            fontFamily: 'Poppins, sans-serif'
+                          }}
+                        />
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
 
-          <Card>
-            <div className="text-center">
-              <p className="text-gray-600 text-sm uppercase tracking-wide mb-2">
-                Unidades na Onda {filtroOnda || '-'}
-              </p>
-              <p className="text-3xl font-bold text-purple-600">
-                {listaUnidadesFiltradas.length}
-              </p>
-            </div>
-          </Card>
+                  <div className="text-center mt-3">
+                    <p className="text-sm" style={{ color: '#adb5bd' }}>
+                      Pontuação Média
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: '#6c757d' }}>
+                      {ondaData.total} unidades
+                    </p>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
         </div>
       </main>
     </div>
