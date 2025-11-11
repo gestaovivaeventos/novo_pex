@@ -21,11 +21,18 @@ export default function HomePage() {
   const listaOndas = useMemo(() => {
     if (!dadosBrutos || dadosBrutos.length === 0) return [];
     
-    // Extrair valores únicos da coluna 'Onda' (Coluna V)
+    // DEBUG: Ver estrutura dos dados
+    console.log('📊 Dados brutos:', dadosBrutos[0]);
+    console.log('📊 Total de registros:', dadosBrutos.length);
+    console.log('📊 TODAS AS COLUNAS DISPONÍVEIS:', Object.keys(dadosBrutos[0]));
+    
+    // Extrair valores únicos da coluna 'ONDA' (Coluna V)
     const ondas = dadosBrutos
-      .map(item => item.Onda || item.onda)
+      .map(item => item.ONDA)
       .filter((value, index, self) => value && self.indexOf(value) === index)
       .sort();
+    
+    console.log('📊 Ondas encontradas:', ondas);
     
     return ondas;
   }, [dadosBrutos]);
@@ -34,12 +41,18 @@ export default function HomePage() {
     if (!dadosBrutos || dadosBrutos.length === 0) return [];
     if (!filtroOnda) return [];
 
+    console.log('🔍 Filtro Onda selecionado:', filtroOnda);
+    
     // Filtrar unidades que correspondem à onda selecionada
-    const unidades = dadosBrutos
-      .filter(item => (item.Onda || item.onda) === filtroOnda)
+    const dadosFiltrados = dadosBrutos.filter(item => item.ONDA === filtroOnda);
+    console.log('🔍 Registros com essa onda:', dadosFiltrados.length);
+    
+    const unidades = dadosFiltrados
       .map(item => item.nm_unidade)
       .filter(Boolean)
       .sort();
+
+    console.log('🔍 Unidades encontradas:', unidades);
 
     return unidades;
   }, [dadosBrutos, filtroOnda]);
@@ -50,18 +63,18 @@ export default function HomePage() {
     // Encontrar o item que corresponde aos dois filtros
     return dadosBrutos.find(
       item =>
-        (item.Onda || item.onda) === filtroOnda &&
+        item.ONDA === filtroOnda &&
         item.nm_unidade === filtroUnidade
     );
   }, [dadosBrutos, filtroOnda, filtroUnidade]);
 
-  // Extrair pontuação (Coluna E)
+  // Extrair pontuação (Coluna F - Pontuação com bonus)
   const pontuacao = useMemo(() => {
     if (!itemSelecionado) return 0;
     
-    const valor = itemSelecionado['Pontuação sem Bonus'] || 
-                  itemSelecionado['Pontuação sem Bônus'] ||
-                  itemSelecionado['pontuacao_sem_bonus'] ||
+    const valor = itemSelecionado['Pontuação com bonus'] || 
+                  itemSelecionado['Pontuação com Bonus'] ||
+                  itemSelecionado['Pontuação com Bônus'] ||
                   '0';
     
     return parseFloat(valor.toString().replace(',', '.')) || 0;
@@ -185,7 +198,7 @@ export default function HomePage() {
         {itemSelecionado ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Card do Gráfico */}
-            <Card titulo="Pontuação (sem Bônus)">
+            <Card titulo="Pontuação Total">
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
@@ -198,36 +211,36 @@ export default function HomePage() {
                     endAngle={-270}
                     dataKey="value"
                   >
-                    {/* Cor azul para score, cinza para restante */}
-                    <Cell fill="#0ea5e9" />
-                    <Cell fill="#e5e7eb" />
+                    {/* Cor laranja para score, cinza para restante */}
+                    <Cell fill="#FF6600" />
+                    <Cell fill="#555" />
                     
                     {/* Label no centro mostrando a pontuação */}
                     <Label
                       value={pontuacao.toFixed(2)}
                       position="center"
                       className="text-3xl font-bold"
-                      fill="#1f2937"
+                      fill="#F8F9FA"
                     />
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
 
               <div className="text-center mt-4">
-                <p className="text-sm text-gray-600">
-                  Pontuação de <strong>{filtroUnidade}</strong> na{' '}
-                  <strong>Onda {filtroOnda}</strong>
+                <p className="text-sm" style={{ color: '#adb5bd' }}>
+                  Pontuação de <strong style={{ color: '#F8F9FA' }}>{filtroUnidade}</strong> na{' '}
+                  <strong style={{ color: '#F8F9FA' }}>Onda {filtroOnda}</strong>
                 </p>
                 <div className="flex justify-center gap-4 mt-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-primary-500 rounded"></div>
-                    <span className="text-xs text-gray-600">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: '#FF6600' }}></div>
+                    <span className="text-xs" style={{ color: '#adb5bd' }}>
                       Atingido: {pontuacao.toFixed(2)}%
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gray-300 rounded"></div>
-                    <span className="text-xs text-gray-600">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: '#555' }}></div>
+                    <span className="text-xs" style={{ color: '#adb5bd' }}>
                       Restante: {(100 - pontuacao).toFixed(2)}%
                     </span>
                   </div>
@@ -238,24 +251,24 @@ export default function HomePage() {
             {/* Card de Detalhes */}
             <Card titulo="Detalhes da Unidade">
               <div className="space-y-3">
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Unidade:</span>
-                  <span className="font-semibold">{filtroUnidade}</span>
+                <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
+                  <span style={{ color: '#adb5bd' }}>Unidade:</span>
+                  <span className="font-semibold" style={{ color: '#F8F9FA' }}>{filtroUnidade}</span>
                 </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Onda:</span>
-                  <span className="font-semibold">{filtroOnda}</span>
+                <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
+                  <span style={{ color: '#adb5bd' }}>Onda:</span>
+                  <span className="font-semibold" style={{ color: '#F8F9FA' }}>{filtroOnda}</span>
                 </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Pontuação sem Bônus:</span>
-                  <span className="font-semibold text-primary-600">
+                <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
+                  <span style={{ color: '#adb5bd' }}>Pontuação Total:</span>
+                  <span className="font-semibold" style={{ color: '#FF6600' }}>
                     {pontuacao.toFixed(2)}
                   </span>
                 </div>
                 {itemSelecionado.cluster && (
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-gray-600">Cluster:</span>
-                    <span className="font-semibold">
+                  <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
+                    <span style={{ color: '#adb5bd' }}>Cluster:</span>
+                    <span className="font-semibold" style={{ color: '#F8F9FA' }}>
                       {itemSelecionado.cluster}
                     </span>
                   </div>

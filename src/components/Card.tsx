@@ -1,7 +1,7 @@
 /**
  * Componente de Card
  * Componente reutilizável para exibir informações em cards
- * Seguindo princípio de Modularidade da Seção 3
+ * Seguindo padrão visual Viva Eventos
  */
 
 import React from 'react';
@@ -14,11 +14,37 @@ interface CardProps {
 
 export default function Card({ titulo, children, className = '' }: CardProps) {
   return (
-    <div className={`card ${className}`}>
+    <div 
+      className={`card ${className}`}
+      style={{
+        backgroundColor: '#343A40',
+        borderRadius: '8px',
+        padding: '20px',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+        transition: 'all 0.3s ease'
+      }}
+    >
       {titulo && (
-        <h3 className="text-xl font-bold mb-4 text-gray-800">{titulo}</h3>
+        <h3 
+          className="card-title" 
+          style={{
+            color: '#adb5bd',
+            fontSize: '1.2rem',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            marginBottom: '16px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid #555',
+            fontFamily: 'Poppins, sans-serif'
+          }}
+        >
+          {titulo}
+        </h3>
       )}
-      {children}
+      <div style={{ color: '#F8F9FA' }}>
+        {children}
+      </div>
     </div>
   );
 }
