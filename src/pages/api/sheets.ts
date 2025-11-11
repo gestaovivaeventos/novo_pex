@@ -63,7 +63,7 @@ export default async function handler(
     });
 
     // 6. Retornar os dados em formato JSON
-    return res.status(200).json(response.data.values);
+    return res.status(200).json(response.data.values || []);
 
   } catch (error: any) {
     // Logar erro detalhado no console do servidor
