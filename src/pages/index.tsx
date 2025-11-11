@@ -276,28 +276,42 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Card do Gráfico */}
             <Card titulo="Pontuação Total">
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
+                  <defs>
+                    <linearGradient id="orangeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#ff7a33" stopOpacity={1} />
+                      <stop offset="50%" stopColor="#ff6000" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#cc4d00" stopOpacity={1} />
+                    </linearGradient>
+                  </defs>
                   <Pie
                     data={dadosGrafico}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
+                    innerRadius={65}
+                    outerRadius={85}
                     startAngle={90}
                     endAngle={-270}
                     dataKey="value"
+                    stroke="none"
+                    strokeWidth={0}
                   >
-                    {/* Cor laranja para score, cinza para restante */}
-                    <Cell fill="#FF6600" />
-                    <Cell fill="#555" />
+                    {/* Gradiente radial laranja escuro para score, cinza escuro para restante */}
+                    <Cell fill="url(#orangeGradient)" stroke="none" />
+                    <Cell fill="#3a3f47" stroke="none" />
                     
                     {/* Label no centro mostrando a pontuação */}
                     <Label
                       value={pontuacao.toFixed(2)}
                       position="center"
-                      className="text-3xl font-bold"
-                      fill="#F8F9FA"
+                      style={{ 
+                        fontSize: '2.8rem', 
+                        fontWeight: '300',
+                        fill: '#F8F9FA',
+                        fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+                        letterSpacing: '-0.02em'
+                      }}
                     />
                   </Pie>
                 </PieChart>
@@ -308,15 +322,15 @@ export default function HomePage() {
                   Pontuação de <strong style={{ color: '#F8F9FA' }}>{filtroUnidade}</strong> na{' '}
                   <strong style={{ color: '#F8F9FA' }}>Onda {filtroOnda}</strong>
                 </p>
-                <div className="flex justify-center gap-4 mt-2">
+                <div className="flex justify-center gap-4 mt-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: '#FF6600' }}></div>
+                    <div className="w-3 h-3 rounded-sm" style={{ background: 'linear-gradient(180deg, #ff7a33, #cc4d00)' }}></div>
                     <span className="text-xs" style={{ color: '#adb5bd' }}>
                       Atingido: {pontuacao.toFixed(2)}%
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: '#555' }}></div>
+                    <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#3a3f47' }}></div>
                     <span className="text-xs" style={{ color: '#adb5bd' }}>
                       Restante: {(100 - pontuacao).toFixed(2)}%
                     </span>
@@ -408,29 +422,38 @@ export default function HomePage() {
 
               return (
                 <Card key={ondaData.onda} titulo={`Onda ${ondaData.onda}`}>
-                  <ResponsiveContainer width="100%" height={180}>
+                  <ResponsiveContainer width="100%" height={200}>
                     <PieChart>
+                      <defs>
+                        <radialGradient id={`orangeGradient${ondaData.onda}`}>
+                          <stop offset="0%" stopColor="#ff7a33" stopOpacity={1} />
+                          <stop offset="100%" stopColor="#cc4400" stopOpacity={1} />
+                        </radialGradient>
+                      </defs>
                       <Pie
                         data={dadosGraficoOnda}
                         cx="50%"
                         cy="50%"
-                        innerRadius={50}
-                        outerRadius={70}
+                        innerRadius={55}
+                        outerRadius={75}
                         startAngle={90}
                         endAngle={-270}
                         dataKey="value"
+                        stroke="none"
+                        strokeWidth={0}
                       >
-                        <Cell fill="#FF6600" />
-                        <Cell fill="#555" />
+                        <Cell fill={`url(#orangeGradient${ondaData.onda})`} stroke="none" />
+                        <Cell fill="#3a3f47" stroke="none" />
                         
                         <Label
                           value={ondaData.media.toFixed(2)}
                           position="center"
                           style={{ 
-                            fontSize: '1.8rem', 
-                            fontWeight: 'bold',
+                            fontSize: '2.2rem', 
+                            fontWeight: '300',
                             fill: '#F8F9FA',
-                            fontFamily: 'Poppins, sans-serif'
+                            fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+                            letterSpacing: '-0.02em'
                           }}
                         />
                       </Pie>
@@ -438,10 +461,10 @@ export default function HomePage() {
                   </ResponsiveContainer>
 
                   <div className="text-center mt-3">
-                    <p className="text-sm" style={{ color: '#adb5bd' }}>
+                    <p className="text-sm" style={{ color: '#adb5bd', fontFamily: 'Poppins, sans-serif' }}>
                       Pontuação Média
                     </p>
-                    <p className="text-xs mt-1" style={{ color: '#6c757d' }}>
+                    <p className="text-xs mt-1" style={{ color: '#6c757d', fontFamily: 'Poppins, sans-serif' }}>
                       {ondaData.total} unidades
                     </p>
                   </div>
