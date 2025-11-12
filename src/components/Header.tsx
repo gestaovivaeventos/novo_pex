@@ -6,19 +6,19 @@
 import React from 'react';
 import Image from 'next/image';
 
-interface HeaderProps {
-  usuario?: string;
-}
-
-export default function Header({ usuario }: HeaderProps) {
+export default function Header() {
   return (
-    <header style={{
-      backgroundColor: '#343A40',
-      boxShadow: '0 4px 10px rgba(255,102,0,0.12)',
-      borderBottom: '3px solid #FF6600'
-    }}>
-      <div className="container mx-auto px-6 py-4">
-        <div className="flex justify-between items-center">
+    <div style={{ backgroundColor: '#212529' }}>
+      <div className="container mx-auto px-4 py-6">
+        <div 
+          style={{
+            backgroundColor: '#343A40',
+            padding: '20px 30px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 10px rgba(255,102,0,0.12)',
+            borderBottom: '3px solid #FF6600'
+          }}
+        >
           <div className="flex items-center space-x-6">
             {/* Logo Viva Eventos - Arquivo PNG original */}
             <div style={{ position: 'relative', width: '180px', height: '60px' }}>
@@ -31,40 +31,29 @@ export default function Header({ usuario }: HeaderProps) {
               />
             </div>
             
-            <div className="border-l border-gray-600 pl-6 h-12 flex flex-col justify-center">
-              <h1 className="text-xl font-bold" style={{ color: '#F8F9FA', fontFamily: 'Poppins, sans-serif' }}>
-                PEX Dashboard 2026
+            <div className="border-l border-gray-600 pl-6 h-16 flex flex-col justify-center">
+              <h1 style={{ 
+                fontSize: '1.75rem',
+                fontWeight: 700,
+                background: 'linear-gradient(to bottom, #F8F9FA 0%, #ADB5BD 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                fontFamily: "'Orbitron', 'Poppins', sans-serif",
+                letterSpacing: '0.05em',
+                marginBottom: '4px',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                textTransform: 'uppercase'
+              }}>
+                PEX - Programa de Excelência Rede Viva
               </h1>
               <span className="text-xs" style={{ color: '#adb5bd', fontFamily: 'Poppins, sans-serif' }}>
-                Programa de Excelência
+                Ciclo {new Date().getFullYear()}
               </span>
             </div>
           </div>
-          
-          {usuario && (
-            <div className="flex items-center space-x-3">
-              <div className="text-right">
-                <span className="text-sm block" style={{ color: '#adb5bd', fontFamily: 'Poppins, sans-serif' }}>
-                  Olá,
-                </span>
-                <span className="text-sm font-semibold" style={{ color: '#F8F9FA', fontFamily: 'Poppins, sans-serif' }}>
-                  {usuario}
-                </span>
-              </div>
-              <button 
-                className="btn-primary"
-                style={{
-                  padding: '8px 20px',
-                  fontSize: '0.9rem',
-                  borderRadius: '6px'
-                }}
-              >
-                Sair
-              </button>
-            </div>
-          )}
         </div>
       </div>
-    </header>
+    </div>
   );
 }

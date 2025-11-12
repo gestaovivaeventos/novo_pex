@@ -8,7 +8,9 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Label } from 'recharts';
 import { useSheetsData } from '@/hooks/useSheetsData';
 import Card from '@/components/Card';
 import Header from '@/components/Header';
+import Sidebar from '@/components/Sidebar';
 import IndicadorCard from '@/components/IndicadorCard';
+import TabelaResumo from '@/components/TabelaResumo';
 
 export default function HomePage() {
   // Buscar dados do Google Sheets
@@ -17,6 +19,12 @@ export default function HomePage() {
   // Estados para os filtros
   const [filtroOnda, setFiltroOnda] = useState<string>('');
   const [filtroUnidade, setFiltroUnidade] = useState<string>('');
+  const [filtroCluster, setFiltroCluster] = useState<string>('');
+  const [filtroConsultor, setFiltroConsultor] = useState<string>('');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  // Nome dinâmico da coluna do consultor
+  const [nomeColunaConsultor, setNomeColunaConsultor] = useState<string>('Consultor');
 
   // Lógica de Filtros usando useMemo para performance
   const listaOndas = useMemo(() => {
@@ -38,25 +46,86 @@ export default function HomePage() {
     return ondas;
   }, [dadosBrutos]);
 
+  const listaClusters = useMemo(() => {
+    if (!dadosBrutos || dadosBrutos.length === 0) return [];
+    
+    const clusters = dadosBrutos
+      .map(item => item.cluster)
+      .filter((value, index, self) => value && self.indexOf(value) === index)
+      .sort();
+    
+    return clusters;
+  }, [dadosBrutos]);
+
+  const listaConsultores = useMemo(() => {
+    if (!dadosBrutos || dadosBrutos.length === 0) return [];
+    
+    // DEBUG: Ver quais colunas existem
+    console.log('📊 Colunas disponíveis:', Object.keys(dadosBrutos[0]));
+    
+    // Tentar encontrar a coluna correta para consultor
+    const possiveisNomesConsultor = ['Consultor', 'CONSULTOR', 'consultor', 'CONSULTOR RESPONSAVEL', 'Consultor Responsável', 'Consultor Responsavel'];
+    let nomeColuna = possiveisNomesConsultor.find(nome => dadosBrutos[0].hasOwnProperty(nome));
+    
+    if (!nomeColuna) {
+      console.warn('⚠️ Coluna de consultor não encontrada! Colunas disponíveis:', Object.keys(dadosBrutos[0]));
+      return [];
+    }
+    
+    console.log('📊 Nome da coluna do consultor:', nomeColuna);
+    
+    const consultores = dadosBrutos
+      .map(item => item[nomeColuna])
+      .filter((value, index, self) => value && self.indexOf(value) === index)
+      .sort();
+    
+    console.log('📊 Consultores encontrados:', consultores);
+    
+    return consultores;
+  }, [dadosBrutos]);
+  
+  // Detectar o nome da coluna do consultor
+  React.useEffect(() => {
+    if (dadosBrutos && dadosBrutos.length > 0) {
+      const possiveisNomesConsultor = ['Consultor', 'CONSULTOR', 'consultor', 'CONSULTOR RESPONSAVEL', 'Consultor Responsável', 'Consultor Responsavel'];
+      const nomeColuna = possiveisNomesConsultor.find(nome => dadosBrutos[0].hasOwnProperty(nome));
+      if (nomeColuna) {
+        setNomeColunaConsultor(nomeColuna);
+      }
+    }
+  }, [dadosBrutos]);
+
   const listaUnidadesFiltradas = useMemo(() => {
     if (!dadosBrutos || dadosBrutos.length === 0) return [];
-    if (!filtroOnda) return [];
 
-    console.log('🔍 Filtro Onda selecionado:', filtroOnda);
+    console.log('🔍 Filtros aplicados:', { filtroOnda, filtroCluster, filtroConsultor });
     
-    // Filtrar unidades que correspondem à onda selecionada
-    const dadosFiltrados = dadosBrutos.filter(item => item.ONDA === filtroOnda);
-    console.log('🔍 Registros com essa onda:', dadosFiltrados.length);
+    // Aplicar todos os filtros
+    let dadosFiltrados = dadosBrutos;
+    
+    if (filtroOnda) {
+      dadosFiltrados = dadosFiltrados.filter(item => item.ONDA === filtroOnda);
+    }
+    
+    if (filtroCluster) {
+      dadosFiltrados = dadosFiltrados.filter(item => item.cluster === filtroCluster);
+    }
+    
+    if (filtroConsultor) {
+      dadosFiltrados = dadosFiltrados.filter(item => item[nomeColunaConsultor] === filtroConsultor);
+    }
+    
+    console.log('🔍 Registros após filtros:', dadosFiltrados.length);
     
     const unidades = dadosFiltrados
       .map(item => item.nm_unidade)
-      .filter(Boolean)
+      .filter((value, index, self) => value && self.indexOf(value) === index)
       .sort();
 
     console.log('🔍 Unidades encontradas:', unidades);
 
     return unidades;
-  }, [dadosBrutos, filtroOnda]);
+  }, [dadosBrutos, filtroOnda, filtroCluster, filtroConsultor]);
 
   const itemSelecionado = useMemo(() => {
     if (!dadosBrutos || !filtroOnda || !filtroUnidade) return null;
@@ -69,17 +138,104 @@ export default function HomePage() {
     );
   }, [dadosBrutos, filtroOnda, filtroUnidade]);
 
-  // Extrair pontuação (Coluna F - Pontuação com bonus)
+  // Extrair pontuação (média de todas as ondas da unidade)
   const pontuacao = useMemo(() => {
-    if (!itemSelecionado) return 0;
+    if (!filtroUnidade || !dadosBrutos) return 0;
     
-    const valor = itemSelecionado['Pontuação com bonus'] || 
-                  itemSelecionado['Pontuação com Bonus'] ||
-                  itemSelecionado['Pontuação com Bônus'] ||
-                  '0';
-    
-    return parseFloat(valor.toString().replace(',', '.')) || 0;
-  }, [itemSelecionado]);
+    // Buscar todas as ondas da unidade selecionada
+    const todasOndasDaUnidade = dadosBrutos.filter(
+      item => item.nm_unidade === filtroUnidade
+    );
+
+    if (todasOndasDaUnidade.length === 0) return 0;
+
+    // Calcular a soma das pontuações
+    const somaPontuacoes = todasOndasDaUnidade.reduce((acc, item) => {
+      const valor = item['Pontuação com bonus'] || 
+                    item['Pontuação com Bonus'] ||
+                    item['Pontuação com Bônus'] ||
+                    '0';
+      
+      return acc + (parseFloat(valor.toString().replace(',', '.')) || 0);
+    }, 0);
+
+    // Retornar a média
+    return somaPontuacoes / todasOndasDaUnidade.length;
+  }, [filtroUnidade, dadosBrutos]);
+
+  // Calcular ranking na rede (posição geral baseada na média de todas as ondas)
+  const rankingRedePorMedia = useMemo(() => {
+    if (!dadosBrutos || !filtroUnidade) return { posicao: 0, total: 0 };
+
+    // Agrupar por unidade e calcular média de todas as ondas
+    const unidadesComMedia = new Map<string, { soma: number; count: number; cluster?: string }>();
+
+    dadosBrutos.forEach(item => {
+      const unidade = item.nm_unidade;
+      const pontos = parseFloat((item['Pontuação com bonus'] || item['Pontuação com Bonus'] || '0').toString().replace(',', '.')) || 0;
+      
+      if (!unidadesComMedia.has(unidade)) {
+        unidadesComMedia.set(unidade, { soma: 0, count: 0, cluster: item.cluster });
+      }
+      
+      const dados = unidadesComMedia.get(unidade)!;
+      dados.soma += pontos;
+      dados.count += 1;
+    });
+
+    // Criar ranking com médias
+    const ranking = Array.from(unidadesComMedia.entries())
+      .map(([unidade, dados]) => ({
+        unidade,
+        media: dados.soma / dados.count,
+        cluster: dados.cluster
+      }))
+      .sort((a, b) => b.media - a.media);
+
+    // Encontrar posição da unidade selecionada
+    const posicao = ranking.findIndex(item => item.unidade === filtroUnidade) + 1;
+
+    return { posicao, total: ranking.length };
+  }, [dadosBrutos, filtroUnidade]);
+
+  // Calcular ranking no cluster (posição dentro do cluster baseada na média)
+  const rankingClusterPorMedia = useMemo(() => {
+    if (!dadosBrutos || !filtroUnidade || !itemSelecionado?.cluster) {
+      return { posicao: 0, total: 0 };
+    }
+
+    const clusterSelecionado = itemSelecionado.cluster;
+
+    // Agrupar por unidade e calcular média de todas as ondas
+    const unidadesComMedia = new Map<string, { soma: number; count: number; cluster?: string }>();
+
+    dadosBrutos.forEach(item => {
+      const unidade = item.nm_unidade;
+      const pontos = parseFloat((item['Pontuação com bonus'] || item['Pontuação com Bonus'] || '0').toString().replace(',', '.')) || 0;
+      
+      if (!unidadesComMedia.has(unidade)) {
+        unidadesComMedia.set(unidade, { soma: 0, count: 0, cluster: item.cluster });
+      }
+      
+      const dados = unidadesComMedia.get(unidade)!;
+      dados.soma += pontos;
+      dados.count += 1;
+    });
+
+    // Filtrar apenas unidades do mesmo cluster e criar ranking
+    const ranking = Array.from(unidadesComMedia.entries())
+      .filter(([_, dados]) => dados.cluster === clusterSelecionado)
+      .map(([unidade, dados]) => ({
+        unidade,
+        media: dados.soma / dados.count
+      }))
+      .sort((a, b) => b.media - a.media);
+
+    // Encontrar posição da unidade selecionada
+    const posicao = ranking.findIndex(item => item.unidade === filtroUnidade) + 1;
+
+    return { posicao, total: ranking.length };
+  }, [dadosBrutos, filtroUnidade, itemSelecionado]);
 
   // Calcular ranking na rede (posição geral na onda)
   const rankingRede = useMemo(() => {
@@ -135,32 +291,34 @@ export default function HomePage() {
 
   // Calcular pontuação média por onda (para os 4 gráficos)
   const pontuacoesPorOnda = useMemo(() => {
-    if (!dadosBrutos || dadosBrutos.length === 0) return [];
+    if (!dadosBrutos || dadosBrutos.length === 0 || !filtroUnidade) return [];
 
-    // Agrupar por onda e calcular média
-    const ondas = ['1', '2', '3', '4']; // Assumindo 4 ondas
+    // Buscar as 4 ondas da unidade selecionada
+    const ondas = ['1', '2', '3', '4'];
     
     return ondas.map(onda => {
-      const unidadesDaOnda = dadosBrutos.filter(item => item.ONDA === onda);
-      
-      if (unidadesDaOnda.length === 0) {
-        return { onda, media: 0, total: 0 };
+      // Buscar dados da unidade selecionada nesta onda específica
+      const dadosUnidadeNaOnda = dadosBrutos.find(
+        item => item.ONDA === onda && item.nm_unidade === filtroUnidade
+      );
+
+      if (!dadosUnidadeNaOnda) {
+        return { onda, pontuacao: 0 };
       }
 
-      const somaTotal = unidadesDaOnda.reduce((acc, item) => {
-        const pontos = parseFloat((item['Pontuação com bonus'] || item['Pontuação com Bonus'] || '0').toString().replace(',', '.')) || 0;
-        return acc + pontos;
-      }, 0);
-
-      const media = somaTotal / unidadesDaOnda.length;
+      // Pegar a pontuação da unidade nesta onda
+      const pontuacao = parseFloat(
+        (dadosUnidadeNaOnda['Pontuação com bonus'] || dadosUnidadeNaOnda['Pontuação com Bonus'] || '0')
+          .toString()
+          .replace(',', '.')
+      ) || 0;
 
       return {
         onda,
-        media: Math.round(media * 100) / 100,
-        total: unidadesDaOnda.length
+        pontuacao: Math.round(pontuacao * 100) / 100
       };
     });
-  }, [dadosBrutos]);
+  }, [dadosBrutos, filtroUnidade]);
 
   // Calcular performance por indicador (7 indicadores)
   const indicadores = useMemo(() => {
@@ -191,7 +349,7 @@ export default function HomePage() {
         codigo: 'MAC', 
         coluna: 'MAC',
         titulo: 'MAC', 
-        notaGeral: 'META DE ATIVAÇÃO DE CLIENTES'
+        notaGeral: 'META DE ATINGIMENTO DE CONTRATO'
       },
       { 
         codigo: 'Endividamento', 
@@ -202,20 +360,20 @@ export default function HomePage() {
       { 
         codigo: 'NPS', 
         coluna: 'NPS',
-        titulo: 'NPS', 
+        titulo: 'NPS SEMESTRAL', 
         notaGeral: 'NET PROMOTER SCORE'
       },
       { 
         codigo: 'MC_PERCENTUAL', 
         coluna: 'MC %\n(entrega)',
         titulo: 'MC % (ENTREGA)', 
-        notaGeral: 'MARGEM DE CONTRIBUIÇÃO'
+        notaGeral: 'MARGEM DE CONTRIBUIÇÃO DA FRANQUIA'
       },
       { 
         codigo: 'ENPS', 
         coluna: 'Satisfação do colaborador - e-NPS',
         titulo: 'SATISF. COLABORADOR - e-NPS', 
-        notaGeral: 'EMPLOYEE NET PROMOTER SCORE'
+        notaGeral: 'NET PROMOTER SCORE'
       },
       { 
         codigo: 'CONFORMIDADES', 
@@ -316,68 +474,38 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#212529' }}>
-      {/* Header */}
-      <Header usuario="Administrador" />
+      {/* Sidebar com Filtros */}
+      <Sidebar
+        ondas={listaOndas}
+        unidades={listaUnidadesFiltradas}
+        clusters={listaClusters}
+        consultores={listaConsultores}
+        ondaSelecionada={filtroOnda}
+        unidadeSelecionada={filtroUnidade}
+        clusterSelecionado={filtroCluster}
+        consultorSelecionado={filtroConsultor}
+        onOndaChange={(onda) => {
+          setFiltroOnda(onda);
+        }}
+        onUnidadeChange={setFiltroUnidade}
+        onClusterChange={setFiltroCluster}
+        onConsultorChange={setFiltroConsultor}
+        onCollapseChange={setSidebarCollapsed}
+      />
 
-      {/* Conteúdo Principal */}
-      <main className="container mx-auto px-4 py-8">
-        {/* Filtros */}
-        <div className="flex gap-4 p-4 mb-6 rounded-lg shadow" style={{ backgroundColor: '#343A40' }}>
-          {/* Filtro de Onda */}
-          <div className="flex-1">
-            <label
-              htmlFor="filtro-onda"
-              className="block text-sm font-medium mb-2"
-              style={{ color: '#adb5bd' }}
-            >
-              Selecione a Onda
-            </label>
-            <select
-              id="filtro-onda"
-              value={filtroOnda}
-              onChange={(e) => {
-                setFiltroOnda(e.target.value);
-                setFiltroUnidade(''); // Reset unidade quando mudar onda
-              }}
-              className="input-field"
-            >
-              <option value="">Selecione...</option>
-              {listaOndas.map((onda) => (
-                <option key={onda} value={onda}>
-                  Onda {onda}
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* Área de conteúdo que se ajusta à sidebar */}
+      <div style={{
+        marginLeft: sidebarCollapsed ? '0px' : '280px',
+        transition: 'margin-left 0.3s ease',
+        minHeight: '100vh'
+      }}>
+        {/* Header */}
+        <Header />
 
-          {/* Filtro de Unidade */}
-          <div className="flex-1">
-            <label
-              htmlFor="filtro-unidade"
-              className="block text-sm font-medium mb-2"
-              style={{ color: '#adb5bd' }}
-            >
-              Selecione a Unidade
-            </label>
-            <select
-              id="filtro-unidade"
-              value={filtroUnidade}
-              onChange={(e) => setFiltroUnidade(e.target.value)}
-              className="input-field"
-              disabled={!filtroOnda || listaUnidadesFiltradas.length === 0}
-            >
-              <option value="">Selecione...</option>
-              {listaUnidadesFiltradas.map((unidade) => (
-                <option key={unidade} value={unidade}>
-                  {unidade}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Gráfico de Pontuação */}
-        {itemSelecionado ? (
+        {/* Conteúdo Principal */}
+        <main className="container mx-auto px-4 py-8">
+          {/* Gráfico de Pontuação */}
+          {itemSelecionado ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Card do Gráfico */}
             <Card titulo="Pontuação Total">
@@ -423,10 +551,30 @@ export default function HomePage() {
               </ResponsiveContainer>
 
               <div className="text-center mt-4">
-                <p className="text-sm" style={{ color: '#adb5bd' }}>
-                  Pontuação de <strong style={{ color: '#F8F9FA' }}>{filtroUnidade}</strong> na{' '}
-                  <strong style={{ color: '#F8F9FA' }}>Onda {filtroOnda}</strong>
+                <p className="text-sm mb-3" style={{ color: '#adb5bd' }}>
+                  Média de <strong style={{ color: '#F8F9FA' }}>{filtroUnidade}</strong> em{' '}
+                  <strong style={{ color: '#F8F9FA' }}>todas as ondas</strong>
                 </p>
+
+                {/* Rankings baseados na média */}
+                <div className="space-y-2 mb-3">
+                  <div className="flex justify-between items-center px-3 py-2 rounded" style={{ backgroundColor: '#2a2f36' }}>
+                    <span className="text-xs" style={{ color: '#adb5bd' }}>Posição na Rede:</span>
+                    <span className="text-sm font-bold" style={{ color: '#FF6600' }}>
+                      {rankingRedePorMedia.posicao}º de {rankingRedePorMedia.total}
+                    </span>
+                  </div>
+                  
+                  {itemSelecionado.cluster && (
+                    <div className="flex justify-between items-center px-3 py-2 rounded" style={{ backgroundColor: '#2a2f36' }}>
+                      <span className="text-xs" style={{ color: '#adb5bd' }}>Posição no Cluster:</span>
+                      <span className="text-sm font-bold" style={{ color: '#FF6600' }}>
+                        {rankingClusterPorMedia.posicao}º de {rankingClusterPorMedia.total}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-center gap-4 mt-3">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-sm" style={{ background: 'linear-gradient(180deg, #ff7a33, #cc4d00)' }}></div>
@@ -445,48 +593,80 @@ export default function HomePage() {
             </Card>
 
             {/* Card de Detalhes */}
-            <Card titulo="Detalhes da Unidade">
+            <Card>
+              <h3 
+                className="card-title" 
+                style={{
+                  color: '#adb5bd',
+                  fontSize: '1.2rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  marginBottom: '16px',
+                  paddingBottom: '8px',
+                  borderBottom: '1px solid #555',
+                  fontFamily: 'Poppins, sans-serif'
+                }}
+              >
+                DETALHES DA UNIDADE <span style={{ color: '#FF6600' }}>(POR ONDA)</span>
+              </h3>
               <div className="space-y-3">
-                <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
+                {/* 1. Unidade */}
+                <div className="grid grid-cols-2 gap-4 py-2" style={{ borderBottom: '1px solid #555' }}>
                   <span style={{ color: '#adb5bd' }}>Unidade:</span>
                   <span className="font-semibold" style={{ color: '#F8F9FA' }}>{filtroUnidade}</span>
                 </div>
-                <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
+
+                {/* 2. Cluster */}
+                {itemSelecionado.cluster && (
+                  <div className="grid grid-cols-2 gap-4 py-2" style={{ borderBottom: '1px solid #555' }}>
+                    <span style={{ color: '#adb5bd' }}>Cluster:</span>
+                    <span className="font-semibold" style={{ color: '#F8F9FA' }}>
+                      {itemSelecionado.cluster}
+                    </span>
+                  </div>
+                )}
+
+                {/* 3. Consultor Responsável */}
+                {itemSelecionado.Consultor && (
+                  <div className="grid grid-cols-2 gap-4 py-2" style={{ borderBottom: '1px solid #555' }}>
+                    <span style={{ color: '#adb5bd' }}>Consultor Responsável:</span>
+                    <span className="font-semibold" style={{ color: '#F8F9FA' }}>
+                      {itemSelecionado.Consultor}
+                    </span>
+                  </div>
+                )}
+
+                {/* 4. Onda */}
+                <div className="grid grid-cols-2 gap-4 py-2" style={{ borderBottom: '1px solid #555' }}>
                   <span style={{ color: '#adb5bd' }}>Onda:</span>
                   <span className="font-semibold" style={{ color: '#F8F9FA' }}>{filtroOnda}</span>
                 </div>
-                <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
-                  <span style={{ color: '#adb5bd' }}>Pontuação Total:</span>
+
+                {/* 5. Pontuação na Onda Selecionada */}
+                <div className="grid grid-cols-2 gap-4 py-2" style={{ borderBottom: '1px solid #555' }}>
+                  <span style={{ color: '#adb5bd' }}>Pontuação na Onda Selecionada:</span>
                   <span className="font-semibold" style={{ color: '#FF6600', fontSize: '1.1rem' }}>
-                    {pontuacao.toFixed(2)}
+                    {itemSelecionado['Pontuação com bonus'] || itemSelecionado['Pontuação com Bonus'] || '0'}
                   </span>
                 </div>
                 
-                {/* Ranking na Rede */}
-                <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
+                {/* 6. Posição na Rede */}
+                <div className="grid grid-cols-2 gap-4 py-2" style={{ borderBottom: '1px solid #555' }}>
                   <span style={{ color: '#adb5bd' }}>Posição na Rede:</span>
                   <span className="font-semibold" style={{ color: '#F8F9FA' }}>
                     {rankingRede.posicao}º de {rankingRede.total}
                   </span>
                 </div>
 
+                {/* 7. Posição no Cluster */}
                 {itemSelecionado.cluster && (
-                  <>
-                    <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
-                      <span style={{ color: '#adb5bd' }}>Cluster:</span>
-                      <span className="font-semibold" style={{ color: '#F8F9FA' }}>
-                        {itemSelecionado.cluster}
-                      </span>
-                    </div>
-                    
-                    {/* Ranking no Cluster */}
-                    <div className="flex justify-between py-2" style={{ borderBottom: '1px solid #555' }}>
-                      <span style={{ color: '#adb5bd' }}>Posição no Cluster:</span>
-                      <span className="font-semibold" style={{ color: '#F8F9FA' }}>
-                        {rankingCluster.posicao}º de {rankingCluster.total}
-                      </span>
-                    </div>
-                  </>
+                  <div className="grid grid-cols-2 gap-4 py-2" style={{ borderBottom: '1px solid #555' }}>
+                    <span style={{ color: '#adb5bd' }}>Posição no Cluster:</span>
+                    <span className="font-semibold" style={{ color: '#F8F9FA' }}>
+                      {rankingCluster.posicao}º de {rankingCluster.total}
+                    </span>
+                  </div>
                 )}
               </div>
             </Card>
@@ -506,87 +686,93 @@ export default function HomePage() {
         )}
 
         {/* Gráficos de Pontuação por Onda */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-6" style={{ 
-            color: '#adb5bd', 
-            fontFamily: 'Poppins, sans-serif',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            borderBottom: '2px solid #FF6600',
-            paddingBottom: '8px'
-          }}>
-            Pontuação Média por Onda
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {pontuacoesPorOnda.map((ondaData) => {
-              const dadosGraficoOnda = [
-                { name: 'score', value: ondaData.media },
-                { name: 'restante', value: Math.max(0, 100 - ondaData.media) }
-              ];
+        {itemSelecionado && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold mb-6" style={{ 
+              color: '#adb5bd', 
+              fontFamily: 'Poppins, sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              borderBottom: '2px solid #FF6600',
+              paddingBottom: '8px'
+            }}>
+              Pontuação por Onda
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {pontuacoesPorOnda.map((ondaData) => {
+                const dadosGraficoOnda = [
+                  { name: 'score', value: ondaData.pontuacao },
+                  { name: 'restante', value: Math.max(0, 100 - ondaData.pontuacao) }
+                ];
 
-              return (
-                <Card key={ondaData.onda} titulo={`Onda ${ondaData.onda}`}>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <defs>
-                        <radialGradient id={`orangeGradient${ondaData.onda}`}>
-                          <stop offset="0%" stopColor="#ff7a33" stopOpacity={1} />
-                          <stop offset="100%" stopColor="#cc4400" stopOpacity={1} />
-                        </radialGradient>
-                      </defs>
-                      <Pie
-                        data={dadosGraficoOnda}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={55}
-                        outerRadius={75}
-                        startAngle={90}
-                        endAngle={-270}
-                        dataKey="value"
-                        stroke="none"
-                        strokeWidth={0}
-                      >
-                        <Cell fill={`url(#orangeGradient${ondaData.onda})`} stroke="none" />
-                        <Cell fill="#3a3f47" stroke="none" />
-                        
-                        <Label
-                          value={ondaData.media.toFixed(2)}
-                          position="center"
-                          style={{ 
-                            fontSize: '2.2rem', 
-                            fontWeight: '300',
-                            fill: '#F8F9FA',
-                            fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
-                            letterSpacing: '-0.02em'
-                          }}
-                        />
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
+                return (
+                  <Card key={ondaData.onda} titulo={`Onda ${ondaData.onda}`}>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <defs>
+                          <radialGradient id={`orangeGradient${ondaData.onda}`}>
+                            <stop offset="0%" stopColor="#ff7a33" stopOpacity={1} />
+                            <stop offset="100%" stopColor="#cc4400" stopOpacity={1} />
+                          </radialGradient>
+                        </defs>
+                        <Pie
+                          data={dadosGraficoOnda}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={55}
+                          outerRadius={75}
+                          startAngle={90}
+                          endAngle={-270}
+                          dataKey="value"
+                          stroke="none"
+                          strokeWidth={0}
+                        >
+                          <Cell fill={`url(#orangeGradient${ondaData.onda})`} stroke="none" />
+                          <Cell fill="#3a3f47" stroke="none" />
+                          
+                          <Label
+                            value={ondaData.pontuacao.toFixed(2)}
+                            position="center"
+                            style={{ 
+                              fontSize: '2.2rem', 
+                              fontWeight: '300',
+                              fill: '#F8F9FA',
+                              fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+                              letterSpacing: '-0.02em'
+                            }}
+                          />
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
 
-                  <div className="text-center mt-3">
-                    <p className="text-sm" style={{ color: '#adb5bd', fontFamily: 'Poppins, sans-serif' }}>
-                      Pontuação Média
-                    </p>
-                    <p className="text-xs mt-1" style={{ color: '#6c757d', fontFamily: 'Poppins, sans-serif' }}>
-                      {ondaData.total} unidades
-                    </p>
-                  </div>
-                </Card>
-              );
-            })}
+                    <div className="text-center mt-3">
+                      <p className="text-sm" style={{ color: '#adb5bd', fontFamily: 'Poppins, sans-serif' }}>
+                        Pontuação
+                      </p>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Seção: Performance por Indicador */}
         {itemSelecionado && (
           <div className="mt-8">
             <h2 
               className="text-2xl font-bold mb-6" 
-              style={{ color: '#F8F9FA', fontFamily: 'Poppins, sans-serif' }}
+              style={{ 
+                color: '#adb5bd', 
+                fontFamily: 'Poppins, sans-serif',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                borderBottom: '2px solid #FF6600',
+                paddingBottom: '8px'
+              }}
             >
-              PERFORMANCE CONSOLIDADA (REDE)
+              Performance por Indicador <span style={{ color: '#FF6600' }}>(ONDA {filtroOnda})</span>
             </h2>
 
             {/* Grid de 7 Cards de Indicadores */}
@@ -610,7 +796,35 @@ export default function HomePage() {
             </div>
           </div>
         )}
+
+        {/* Seção: Tabela Resumo */}
+        <div className="mt-8">
+          <h2 
+            className="text-2xl font-bold mb-6" 
+            style={{ 
+              color: '#adb5bd', 
+              fontFamily: 'Poppins, sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              borderBottom: '2px solid #FF6600',
+              paddingBottom: '8px'
+            }}
+          >
+            Tabela Resumo {filtroOnda && <span style={{ color: '#FF6600' }}>(ONDA {filtroOnda})</span>}
+          </h2>
+
+          <Card>
+            <TabelaResumo 
+              dados={dadosBrutos || []} 
+              ondaSelecionada={filtroOnda}
+              clusterSelecionado={filtroCluster}
+              consultorSelecionado={filtroConsultor}
+              nomeColunaConsultor={nomeColunaConsultor}
+            />
+          </Card>
+        </div>
       </main>
+      </div>
     </div>
   );
 }
