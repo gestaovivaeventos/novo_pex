@@ -14,6 +14,11 @@ interface UnidadeConsultor {
   consultor: string;
 }
 
+interface UnidadeCluster {
+  unidade: string;
+  cluster: string;
+}
+
 export default function ParametrosPage() {
   const { dados: dadosBrutos } = useSheetsData();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -25,6 +30,19 @@ export default function ParametrosPage() {
   const [mensagem, setMensagem] = useState<{ tipo: 'success' | 'error'; texto: string } | null>(null);
   const [pesquisaUnidade, setPesquisaUnidade] = useState<string>('');
   const [ordenacao, setOrdenacao] = useState<{ coluna: 'unidade' | 'consultor'; direcao: 'asc' | 'desc' }>({
+    coluna: 'unidade',
+    direcao: 'asc'
+  });
+
+  // Estados para gerenciamento de clusters
+  const [loadingClusters, setLoadingClusters] = useState(true);
+  const [savingClusters, setSavingClusters] = useState(false);
+  const [unidadesClusters, setUnidadesClusters] = useState<UnidadeCluster[]>([]);
+  const [clustersAtivos, setClustersAtivos] = useState<string[]>([]);
+  const [alteracoesClusters, setAlteracoesClusters] = useState<Map<string, string>>(new Map());
+  const [mensagemClusters, setMensagemClusters] = useState<{ tipo: 'success' | 'error'; texto: string } | null>(null);
+  const [pesquisaUnidadeCluster, setPesquisaUnidadeCluster] = useState<string>('');
+  const [ordenacaoCluster, setOrdenacaoCluster] = useState<{ coluna: 'unidade' | 'cluster'; direcao: 'asc' | 'desc' }>({
     coluna: 'unidade',
     direcao: 'asc'
   });
@@ -104,6 +122,71 @@ export default function ParametrosPage() {
     };
 
     carregarDados();
+  }, []);
+
+  // Carregar dados de clusters
+  useEffect(() => {
+    const carregarDadosClusters = async () => {
+      try {
+        setLoadingClusters(true);
+        const response = await fetch('/api/clusters');
+        
+        if (!response.ok) {
+          throw new Error('Erro ao carregar dados de clusters');
+        }
+
+        const dados = await response.json();
+        
+        console.log('Dados de clusters recebidos:', dados);
+        
+        if (dados.length > 0) {
+          const headers = dados[0];
+          const rows = dados.slice(1);
+          
+          // Encontrar índice das colunas
+          const unidadeIdx = headers.findIndex((h: string) => h === 'nm_unidade');
+          const clusterIdx = headers.findIndex((h: string) => h === 'Cluster');
+          const clustersAtivosIdx = headers.findIndex((h: string) => h === 'Cluster ativos');
+          
+          console.log('Índices clusters:', { unidadeIdx, clusterIdx, clustersAtivosIdx });
+          
+          // Extrair unidades e clusters
+          const unidades: UnidadeCluster[] = rows
+            .filter((row: any[]) => row[unidadeIdx])
+            .map((row: any[]) => ({
+              unidade: row[unidadeIdx] || '',
+              cluster: row[clusterIdx] || ''
+            }));
+          
+          // Extrair clusters ativos - procurar em todas as linhas da coluna G
+          const clustersSet = new Set<string>();
+          rows.forEach((row: any[]) => {
+            const clustersCell = row[clustersAtivosIdx];
+            if (clustersCell) {
+              const clustersDaCelula = clustersCell
+                .split('\n')
+                .map((c: string) => c.trim())
+                .filter((c: string) => c.length > 0);
+              
+              clustersDaCelula.forEach((c: string) => clustersSet.add(c));
+            }
+          });
+          
+          const clustersLista = Array.from(clustersSet);
+          console.log('Clusters ativos encontrados:', clustersLista);
+          
+          setUnidadesClusters(unidades);
+          setClustersAtivos(clustersLista);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados de clusters:', error);
+        setMensagemClusters({ tipo: 'error', texto: 'Erro ao carregar dados de clusters da planilha' });
+      } finally {
+        setLoadingClusters(false);
+      }
+    };
+
+    carregarDadosClusters();
   }, []);
 
   // Atualizar consultor localmente
@@ -200,6 +283,102 @@ export default function ParametrosPage() {
       setMensagem({ tipo: 'error', texto: error.message || 'Erro ao salvar alterações' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Atualizar cluster localmente
+  const handleClusterChange = (unidade: string, novoCluster: string) => {
+    const novasAlteracoes = new Map(alteracoesClusters);
+    novasAlteracoes.set(unidade, novoCluster);
+    setAlteracoesClusters(novasAlteracoes);
+  };
+
+  // Filtrar unidades pela pesquisa (clusters)
+  const unidadesFiltradasClusters = unidadesClusters.filter(uc =>
+    uc.unidade.toLowerCase().includes(pesquisaUnidadeCluster.toLowerCase())
+  );
+
+  // Ordenar unidades (clusters)
+  const unidadesOrdenadasClusters = [...unidadesFiltradasClusters].sort((a, b) => {
+    let valorA: string;
+    let valorB: string;
+
+    if (ordenacaoCluster.coluna === 'unidade') {
+      valorA = a.unidade;
+      valorB = b.unidade;
+    } else {
+      valorA = alteracoesClusters.get(a.unidade) || a.cluster || '';
+      valorB = alteracoesClusters.get(b.unidade) || b.cluster || '';
+    }
+
+    const comparacao = valorA.localeCompare(valorB);
+    return ordenacaoCluster.direcao === 'asc' ? comparacao : -comparacao;
+  });
+
+  // Função para alternar ordenação (clusters)
+  const toggleOrdenacaoCluster = (coluna: 'unidade' | 'cluster') => {
+    if (ordenacaoCluster.coluna === coluna) {
+      setOrdenacaoCluster({
+        coluna,
+        direcao: ordenacaoCluster.direcao === 'asc' ? 'desc' : 'asc'
+      });
+    } else {
+      setOrdenacaoCluster({
+        coluna,
+        direcao: 'asc'
+      });
+    }
+  };
+
+  // Salvar alterações de clusters
+  const salvarAlteracoesClusters = async () => {
+    if (alteracoesClusters.size === 0) {
+      setMensagemClusters({ tipo: 'error', texto: 'Nenhuma alteração para salvar' });
+      return;
+    }
+
+    try {
+      setSavingClusters(true);
+      setMensagemClusters(null);
+
+      const alteracoesArray = Array.from(alteracoesClusters.entries());
+      console.log('Salvando alterações de clusters:', alteracoesArray);
+      
+      for (let i = 0; i < alteracoesArray.length; i++) {
+        const [unidade, cluster] = alteracoesArray[i];
+        console.log(`Salvando cluster ${i + 1}/${alteracoesArray.length}:`, { unidade, cluster });
+        
+        const response = await fetch('/api/clusters', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ unidade, cluster }),
+        });
+
+        const resultado = await response.json();
+        console.log('Resposta da API (clusters):', resultado);
+
+        if (!response.ok) {
+          console.error('Erro na resposta (clusters):', resultado);
+          throw new Error(resultado.message || `Erro ao atualizar cluster de ${unidade}`);
+        }
+      }
+
+      // Atualizar estado local
+      const novasUnidades = unidadesClusters.map(uc => ({
+        ...uc,
+        cluster: alteracoesClusters.get(uc.unidade) || uc.cluster
+      }));
+      setUnidadesClusters(novasUnidades);
+      setAlteracoesClusters(new Map());
+      
+      setMensagemClusters({ tipo: 'success', texto: `${alteracoesClusters.size} cluster(s) atualizado(s) com sucesso!` });
+    } catch (error: any) {
+      console.error('Erro ao salvar clusters:', error);
+      setMensagemClusters({ tipo: 'error', texto: error.message || 'Erro ao salvar alterações de clusters' });
+    } finally {
+      setSavingClusters(false);
     }
   };
 
@@ -478,6 +657,259 @@ export default function ParametrosPage() {
                     }}
                   >
                     {saving ? 'Salvando...' : 'Salvar Alterações'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* SEÇÃO DE GERENCIAMENTO DE CLUSTERS */}
+          <h1 
+            className="text-3xl font-bold mb-6 mt-12" 
+            style={{ 
+              color: '#adb5bd', 
+              fontFamily: 'Poppins, sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              borderBottom: '2px solid #FF6600',
+              paddingBottom: '12px'
+            }}
+          >
+            Gerenciamento de Clusters
+          </h1>
+
+          {/* Mensagem de feedback - Clusters */}
+          {mensagemClusters && (
+            <div style={{
+              padding: '12px 16px',
+              marginBottom: '20px',
+              borderRadius: '8px',
+              backgroundColor: mensagemClusters.tipo === 'success' ? '#22c55e20' : '#ef444420',
+              border: `1px solid ${mensagemClusters.tipo === 'success' ? '#22c55e' : '#ef4444'}`,
+              color: mensagemClusters.tipo === 'success' ? '#22c55e' : '#ef4444',
+              fontFamily: 'Poppins, sans-serif'
+            }}>
+              {mensagemClusters.texto}
+            </div>
+          )}
+
+          <Card>
+            {loadingClusters ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto" style={{ borderColor: '#FF6600' }}></div>
+                <p className="mt-4" style={{ color: '#adb5bd' }}>Carregando dados...</p>
+              </div>
+            ) : (
+              <div>
+                {/* Barra de pesquisa */}
+                <div style={{ marginBottom: '20px', position: 'relative' }}>
+                  <div style={{
+                    position: 'absolute',
+                    left: '16px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#adb5bd',
+                    pointerEvents: 'none',
+                    fontSize: '1.1rem'
+                  }}>
+                    🔍
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Pesquisar unidade..."
+                    value={pesquisaUnidadeCluster}
+                    onChange={(e) => setPesquisaUnidadeCluster(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px 12px 45px',
+                      backgroundColor: '#343A40',
+                      color: 'white',
+                      border: '1px solid #555',
+                      borderRadius: '8px',
+                      fontSize: '0.95rem',
+                      fontFamily: 'Poppins, sans-serif',
+                      outline: 'none',
+                      transition: 'border-color 0.2s'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#FF6600'}
+                    onBlur={(e) => e.target.style.borderColor = '#555'}
+                  />
+                  {pesquisaUnidadeCluster && (
+                    <div style={{ 
+                      marginTop: '8px', 
+                      color: '#adb5bd', 
+                      fontSize: '0.85rem',
+                      fontFamily: 'Poppins, sans-serif'
+                    }}>
+                      {unidadesOrdenadasClusters.length} unidade(s) encontrada(s)
+                    </div>
+                  )}
+                </div>
+
+                {/* Cabeçalho da tabela */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '16px',
+                  padding: '12px 16px',
+                  backgroundColor: '#2a2f36',
+                  borderRadius: '8px 8px 0 0',
+                  fontWeight: 600,
+                  color: '#FF6600',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontSize: '0.9rem'
+                }}>
+                  <div 
+                    onClick={() => toggleOrdenacaoCluster('unidade')}
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    UNIDADE
+                    {ordenacaoCluster.coluna === 'unidade' && (
+                      <span style={{ fontSize: '0.7rem' }}>
+                        {ordenacaoCluster.direcao === 'asc' ? '▲' : '▼'}
+                      </span>
+                    )}
+                  </div>
+                  <div 
+                    onClick={() => toggleOrdenacaoCluster('cluster')}
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    CLUSTER
+                    {ordenacaoCluster.coluna === 'cluster' && (
+                      <span style={{ fontSize: '0.7rem' }}>
+                        {ordenacaoCluster.direcao === 'asc' ? '▲' : '▼'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Lista de unidades */}
+                <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
+                  {unidadesOrdenadasClusters.length === 0 ? (
+                    <div style={{
+                      padding: '40px',
+                      textAlign: 'center',
+                      color: '#adb5bd',
+                      fontFamily: 'Poppins, sans-serif'
+                    }}>
+                      {pesquisaUnidadeCluster ? 'Nenhuma unidade encontrada' : 'Nenhum dado disponível'}
+                    </div>
+                  ) : (
+                    unidadesOrdenadasClusters.map((uc, index) => {
+                      const clusterAtual = alteracoesClusters.get(uc.unidade) || uc.cluster;
+                      const foiAlterado = alteracoesClusters.has(uc.unidade);
+
+                      return (
+                        <div 
+                          key={uc.unidade}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: '16px',
+                            padding: '12px 16px',
+                            borderBottom: '1px solid #343A40',
+                            backgroundColor: foiAlterado 
+                              ? '#2a2f3680' 
+                              : index % 2 === 0 
+                                ? '#2a2f36' 
+                                : '#23272d',
+                            fontFamily: 'Poppins, sans-serif',
+                            transition: 'background-color 0.2s'
+                          }}
+                        >
+                          <div style={{ 
+                            color: '#F8F9FA',
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontWeight: foiAlterado ? 600 : 400
+                          }}>
+                            {foiAlterado && <span style={{ color: '#FF6600', marginRight: '8px' }}>●</span>}
+                            {uc.unidade}
+                          </div>
+                          <div>
+                            <select
+                              value={clusterAtual}
+                              onChange={(e) => handleClusterChange(uc.unidade, e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: foiAlterado ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.9rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                cursor: 'pointer',
+                                outline: 'none'
+                              }}
+                            >
+                              <option value="">Selecione um cluster</option>
+                              {clustersAtivos.map(cluster => (
+                                <option key={cluster} value={cluster}>
+                                  {cluster}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Botão de salvar */}
+                <div style={{ 
+                  padding: '16px',
+                  borderTop: '2px solid #343A40',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div style={{ color: '#adb5bd', fontSize: '0.9rem', fontFamily: 'Poppins, sans-serif' }}>
+                    {alteracoesClusters.size > 0 ? (
+                      <span style={{ color: '#FF6600', fontWeight: 600 }}>
+                        {alteracoesClusters.size} alteração(ões) pendente(s)
+                      </span>
+                    ) : (
+                      'Nenhuma alteração pendente'
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={salvarAlteracoesClusters}
+                    disabled={savingClusters || alteracoesClusters.size === 0}
+                    style={{
+                      padding: '10px 24px',
+                      background: alteracoesClusters.size > 0 && !savingClusters
+                        ? 'linear-gradient(to bottom, #22c55e 0%, #16a34a 50%, #15803d 100%)'
+                        : 'linear-gradient(to bottom, #4a5563 0%, #3a4553 50%, #2a3543 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      cursor: alteracoesClusters.size > 0 && !savingClusters ? 'pointer' : 'not-allowed',
+                      fontFamily: 'Poppins, sans-serif',
+                      opacity: savingClusters || alteracoesClusters.size === 0 ? 0.6 : 1,
+                      boxShadow: alteracoesClusters.size > 0 && !savingClusters
+                        ? '0 4px 12px rgba(34, 197, 94, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                        : 'none',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {savingClusters ? 'Salvando...' : 'Salvar Alterações'}
                   </button>
                 </div>
               </div>
