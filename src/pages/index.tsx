@@ -8,6 +8,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Label } from 'recharts';
 import { useSheetsData } from '@/hooks/useSheetsData';
 import Card from '@/components/Card';
 import Header from '@/components/Header';
+import IndicadorCard from '@/components/IndicadorCard';
 
 export default function HomePage() {
   // Buscar dados do Google Sheets
@@ -160,6 +161,110 @@ export default function HomePage() {
       };
     });
   }, [dadosBrutos]);
+
+  // Calcular performance por indicador (7 indicadores)
+  const indicadores = useMemo(() => {
+    if (!itemSelecionado || !dadosBrutos || !filtroOnda) return [];
+
+    const cluster = itemSelecionado.cluster;
+
+    // DEBUG: Ver colunas disponíveis
+    console.log('📊 Colunas do item selecionado:', Object.keys(itemSelecionado));
+    console.log('📊 Item selecionado completo:', itemSelecionado);
+
+    // Função auxiliar para converter valor para número
+    const parseValor = (valor: any): number => {
+      if (!valor) return 0;
+      const valorStr = valor.toString().replace(',', '.');
+      return parseFloat(valorStr) || 0;
+    };
+
+    // Lista dos 7 indicadores do PEX com suas colunas correspondentes
+    const listaIndicadores = [
+      { 
+        codigo: 'VVR', 
+        coluna: 'VVR',
+        titulo: 'VVR', 
+        notaGeral: 'VALOR DE VENDAS REALIZADAS'
+      },
+      { 
+        codigo: 'MAC', 
+        coluna: 'MAC',
+        titulo: 'MAC', 
+        notaGeral: 'META DE ATIVAÇÃO DE CLIENTES'
+      },
+      { 
+        codigo: 'Endividamento', 
+        coluna: 'Endividamento',
+        titulo: 'ENDIVIDAMENTO', 
+        notaGeral: 'PERCENTUAL DE ENDIVIDAMENTO'
+      },
+      { 
+        codigo: 'NPS', 
+        coluna: 'NPS',
+        titulo: 'NPS', 
+        notaGeral: 'NET PROMOTER SCORE'
+      },
+      { 
+        codigo: 'MC_PERCENTUAL', 
+        coluna: 'MC %\n(entrega)',
+        titulo: 'MC % (ENTREGA)', 
+        notaGeral: 'MARGEM DE CONTRIBUIÇÃO'
+      },
+      { 
+        codigo: 'ENPS', 
+        coluna: 'Satisfação do colaborador - e-NPS',
+        titulo: 'SATISF. COLABORADOR - e-NPS', 
+        notaGeral: 'EMPLOYEE NET PROMOTER SCORE'
+      },
+      { 
+        codigo: 'CONFORMIDADES', 
+        coluna: '*Conformidades',
+        titulo: 'CONFORMIDADES', 
+        notaGeral: 'NÍVEL DE CONFORMIDADE'
+      }
+    ];
+
+    // Filtrar apenas unidades da mesma onda
+    const unidadesDaOnda = dadosBrutos.filter(item => item.ONDA === filtroOnda);
+    const unidadesDoCluster = unidadesDaOnda.filter(item => item.cluster === cluster);
+
+    return listaIndicadores.map(ind => {
+      // Pontuação da unidade selecionada
+      const pontuacaoUnidade = parseValor(itemSelecionado[ind.coluna]);
+
+      // Calcular melhor pontuação da rede neste indicador
+      const pontuacoesRede = unidadesDaOnda
+        .map(item => parseValor(item[ind.coluna]))
+        .filter(val => val > 0);
+      const melhorRede = pontuacoesRede.length > 0 ? Math.max(...pontuacoesRede) : 0;
+
+      // Encontrar unidade com melhor pontuação na rede
+      const unidadeMelhorRede = unidadesDaOnda.find(
+        item => parseValor(item[ind.coluna]) === melhorRede
+      )?.nm_unidade;
+      
+      // Calcular melhor pontuação do cluster neste indicador
+      const pontuacoesCluster = unidadesDoCluster
+        .map(item => parseValor(item[ind.coluna]))
+        .filter(val => val > 0);
+      const melhorCluster = pontuacoesCluster.length > 0 ? Math.max(...pontuacoesCluster) : 0;
+
+      // Encontrar unidade com melhor pontuação no cluster
+      const unidadeMelhorCluster = unidadesDoCluster.find(
+        item => parseValor(item[ind.coluna]) === melhorCluster
+      )?.nm_unidade;
+
+      return {
+        ...ind,
+        pontuacao: pontuacaoUnidade,
+        melhorPontuacaoRede: melhorRede,
+        melhorPontuacaoCluster: melhorCluster,
+        unidadeMelhorRede,
+        unidadeMelhorCluster
+      };
+    });
+  }, [itemSelecionado, dadosBrutos, filtroOnda]);
 
   // Inicializar filtros quando os dados carregarem
   React.useEffect(() => {
@@ -473,6 +578,38 @@ export default function HomePage() {
             })}
           </div>
         </div>
+
+        {/* Seção: Performance por Indicador */}
+        {itemSelecionado && (
+          <div className="mt-8">
+            <h2 
+              className="text-2xl font-bold mb-6" 
+              style={{ color: '#F8F9FA', fontFamily: 'Poppins, sans-serif' }}
+            >
+              PERFORMANCE CONSOLIDADA (REDE)
+            </h2>
+
+            {/* Grid de 7 Cards de Indicadores */}
+            <div className="flex flex-wrap justify-center gap-4">
+              {indicadores.map((indicador, index) => (
+                <div 
+                  key={index}
+                  className="w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] xl:w-[calc(25%-0.75rem)]"
+                >
+                  <IndicadorCard
+                    titulo={indicador.titulo}
+                    notaGeral={indicador.notaGeral}
+                    pontuacao={indicador.pontuacao}
+                    melhorPontuacaoRede={indicador.melhorPontuacaoRede}
+                    melhorPontuacaoCluster={indicador.melhorPontuacaoCluster}
+                    unidadeMelhorRede={indicador.unidadeMelhorRede}
+                    unidadeMelhorCluster={indicador.unidadeMelhorCluster}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
