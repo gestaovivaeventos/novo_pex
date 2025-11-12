@@ -8,7 +8,7 @@ import * as XLSX from 'xlsx';
 
 interface TabelaResumoProps {
   dados: any[];
-  ondaSelecionada?: string;
+  quarterSelecionado?: string;
   clusterSelecionado?: string;
   consultorSelecionado?: string;
   nomeColunaConsultor?: string;
@@ -18,7 +18,7 @@ type OrdenacaoTipo = 'asc' | 'desc' | null;
 
 export default function TabelaResumo({ 
   dados, 
-  ondaSelecionada, 
+  quarterSelecionado, 
   clusterSelecionado, 
   consultorSelecionado,
   nomeColunaConsultor = 'Consultor'
@@ -45,17 +45,17 @@ export default function TabelaResumo({
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Resumo PEX');
     
     // Gerar o arquivo e fazer download
-    const nomeArquivo = `PEX_Tabela_Resumo${ondaSelecionada ? '_Onda_' + ondaSelecionada : ''}.xlsx`;
+    const nomeArquivo = `PEX_Tabela_Resumo${quarterSelecionado ? '_QUARTER_' + quarterSelecionado : ''}.xlsx`;
     XLSX.writeFile(workbook, nomeArquivo);
   };
 
-  // Filtrar dados pela onda selecionada
+  // Filtrar dados pela QUARTER selecionada
   const dadosFiltrados = useMemo(() => {
     let resultado = dados;
     
-    // Filtrar por onda
-    if (ondaSelecionada) {
-      resultado = resultado.filter(item => item.ONDA === ondaSelecionada);
+    // Filtrar por QUARTER
+    if (quarterSelecionado) {
+      resultado = resultado.filter(item => item.QUARTER === quarterSelecionado);
     }
     
     // Filtrar por cluster
@@ -69,7 +69,7 @@ export default function TabelaResumo({
     }
     
     return resultado;
-  }, [dados, ondaSelecionada, clusterSelecionado, consultorSelecionado, nomeColunaConsultor]);
+  }, [dados, quarterSelecionado, clusterSelecionado, consultorSelecionado, nomeColunaConsultor]);
 
   // Ordenar dados
   const dadosOrdenados = useMemo(() => {

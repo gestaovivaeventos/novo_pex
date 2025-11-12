@@ -1,6 +1,6 @@
 /**
  * Página Principal - Dashboard PEX com Filtros
- * Exibe gráfico de pontuação por Onda e Unidade
+ * Exibe gráfico de pontuação por Quarter e Unidade
  */
 
 import React, { useState, useMemo } from 'react';
@@ -17,7 +17,7 @@ export default function HomePage() {
   const { dados: dadosBrutos, loading, error } = useSheetsData();
 
   // Estados para os filtros
-  const [filtroOnda, setFiltroOnda] = useState<string>('');
+  const [filtroQuarter, setFiltroQuarter] = useState<string>('');
   const [filtroUnidade, setFiltroUnidade] = useState<string>('');
   const [filtroCluster, setFiltroCluster] = useState<string>('');
   const [filtroConsultor, setFiltroConsultor] = useState<string>('');
@@ -27,7 +27,7 @@ export default function HomePage() {
   const [nomeColunaConsultor, setNomeColunaConsultor] = useState<string>('Consultor');
 
   // Lógica de Filtros usando useMemo para performance
-  const listaOndas = useMemo(() => {
+  const listaQuarters = useMemo(() => {
     if (!dadosBrutos || dadosBrutos.length === 0) return [];
     
     // DEBUG: Ver estrutura dos dados
@@ -35,15 +35,15 @@ export default function HomePage() {
     console.log('📊 Total de registros:', dadosBrutos.length);
     console.log('📊 TODAS AS COLUNAS DISPONÍVEIS:', Object.keys(dadosBrutos[0]));
     
-    // Extrair valores únicos da coluna 'ONDA' (Coluna V)
-    const ondas = dadosBrutos
-      .map(item => item.ONDA)
+    // Extrair valores únicos da coluna 'QUARTER' (Coluna V)
+    const quarters = dadosBrutos
+      .map(item => item.QUARTER)
       .filter((value, index, self) => value && self.indexOf(value) === index)
       .sort();
     
-    console.log('📊 Ondas encontradas:', ondas);
+    console.log('📊 Quarters encontrados:', quarters);
     
-    return ondas;
+    return quarters;
   }, [dadosBrutos]);
 
   const listaClusters = useMemo(() => {
@@ -98,13 +98,13 @@ export default function HomePage() {
   const listaUnidadesFiltradas = useMemo(() => {
     if (!dadosBrutos || dadosBrutos.length === 0) return [];
 
-    console.log('🔍 Filtros aplicados:', { filtroOnda, filtroCluster, filtroConsultor });
+    console.log('🔍 Filtros aplicados:', { filtroQuarter, filtroCluster, filtroConsultor });
     
     // Aplicar todos os filtros
     let dadosFiltrados = dadosBrutos;
     
-    if (filtroOnda) {
-      dadosFiltrados = dadosFiltrados.filter(item => item.ONDA === filtroOnda);
+    if (filtroQuarter) {
+      dadosFiltrados = dadosFiltrados.filter(item => item.QUARTER === filtroQuarter);
     }
     
     if (filtroCluster) {
@@ -125,32 +125,32 @@ export default function HomePage() {
     console.log('🔍 Unidades encontradas:', unidades);
 
     return unidades;
-  }, [dadosBrutos, filtroOnda, filtroCluster, filtroConsultor]);
+  }, [dadosBrutos, filtroQuarter, filtroCluster, filtroConsultor]);
 
   const itemSelecionado = useMemo(() => {
-    if (!dadosBrutos || !filtroOnda || !filtroUnidade) return null;
+    if (!dadosBrutos || !filtroQuarter || !filtroUnidade) return null;
 
     // Encontrar o item que corresponde aos dois filtros
     return dadosBrutos.find(
       item =>
-        item.ONDA === filtroOnda &&
+        item.QUARTER === filtroQuarter &&
         item.nm_unidade === filtroUnidade
     );
-  }, [dadosBrutos, filtroOnda, filtroUnidade]);
+  }, [dadosBrutos, filtroQuarter, filtroUnidade]);
 
-  // Extrair pontuação (média de todas as ondas da unidade)
+  // Extrair pontuação (média de todos os quarters da unidade)
   const pontuacao = useMemo(() => {
     if (!filtroUnidade || !dadosBrutos) return 0;
     
-    // Buscar todas as ondas da unidade selecionada
-    const todasOndasDaUnidade = dadosBrutos.filter(
+    // Buscar todos os quarters da unidade selecionada
+    const todosQuartersDaUnidade = dadosBrutos.filter(
       item => item.nm_unidade === filtroUnidade
     );
 
-    if (todasOndasDaUnidade.length === 0) return 0;
+    if (todosQuartersDaUnidade.length === 0) return 0;
 
     // Calcular a soma das pontuações
-    const somaPontuacoes = todasOndasDaUnidade.reduce((acc, item) => {
+    const somaPontuacoes = todosQuartersDaUnidade.reduce((acc, item) => {
       const valor = item['Pontuação com bonus'] || 
                     item['Pontuação com Bonus'] ||
                     item['Pontuação com Bônus'] ||
@@ -160,14 +160,14 @@ export default function HomePage() {
     }, 0);
 
     // Retornar a média
-    return somaPontuacoes / todasOndasDaUnidade.length;
+    return somaPontuacoes / todosQuartersDaUnidade.length;
   }, [filtroUnidade, dadosBrutos]);
 
-  // Calcular ranking na rede (posição geral baseada na média de todas as ondas)
+  // Calcular ranking na rede (posição geral baseada na média de todos os quarters)
   const rankingRedePorMedia = useMemo(() => {
     if (!dadosBrutos || !filtroUnidade) return { posicao: 0, total: 0 };
 
-    // Agrupar por unidade e calcular média de todas as ondas
+    // Agrupar por unidade e calcular média de todos os quarters
     const unidadesComMedia = new Map<string, { soma: number; count: number; cluster?: string }>();
 
     dadosBrutos.forEach(item => {
@@ -206,7 +206,7 @@ export default function HomePage() {
 
     const clusterSelecionado = itemSelecionado.cluster;
 
-    // Agrupar por unidade e calcular média de todas as ondas
+    // Agrupar por unidade e calcular média de todos os quarters
     const unidadesComMedia = new Map<string, { soma: number; count: number; cluster?: string }>();
 
     dadosBrutos.forEach(item => {
@@ -237,15 +237,15 @@ export default function HomePage() {
     return { posicao, total: ranking.length };
   }, [dadosBrutos, filtroUnidade, itemSelecionado]);
 
-  // Calcular ranking na rede (posição geral na onda)
+  // Calcular ranking na rede (posição geral no quarter)
   const rankingRede = useMemo(() => {
-    if (!dadosBrutos || !filtroOnda || !itemSelecionado) return { posicao: 0, total: 0 };
+    if (!dadosBrutos || !filtroQuarter || !itemSelecionado) return { posicao: 0, total: 0 };
 
-    // Filtrar apenas unidades da onda selecionada
-    const unidadesDaOnda = dadosBrutos.filter(item => item.ONDA === filtroOnda);
+    // Filtrar apenas unidades do quarter selecionada
+    const unidadesDoQuarter = dadosBrutos.filter(item => item.QUARTER === filtroQuarter);
     
     // Ordenar por pontuação (decrescente)
-    const ranking = unidadesDaOnda
+    const ranking = unidadesDoQuarter
       .map(item => ({
         unidade: item.nm_unidade,
         pontuacao: parseFloat((item['Pontuação com bonus'] || item['Pontuação com Bonus'] || '0').toString().replace(',', '.')) || 0
@@ -256,17 +256,17 @@ export default function HomePage() {
     const posicao = ranking.findIndex(item => item.unidade === filtroUnidade) + 1;
 
     return { posicao, total: ranking.length };
-  }, [dadosBrutos, filtroOnda, filtroUnidade, itemSelecionado]);
+  }, [dadosBrutos, filtroQuarter, filtroUnidade, itemSelecionado]);
 
-  // Calcular ranking no cluster (posição dentro do cluster na onda)
+  // Calcular ranking no cluster (posição dentro do cluster no quarter)
   const rankingCluster = useMemo(() => {
-    if (!dadosBrutos || !filtroOnda || !itemSelecionado || !itemSelecionado.cluster) {
+    if (!dadosBrutos || !filtroQuarter || !itemSelecionado || !itemSelecionado.cluster) {
       return { posicao: 0, total: 0 };
     }
 
-    // Filtrar unidades da mesma onda E mesmo cluster
+    // Filtrar unidades do mesmo quarter E mesmo cluster
     const unidadesDoCluster = dadosBrutos.filter(
-      item => item.ONDA === filtroOnda && item.cluster === itemSelecionado.cluster
+      item => item.QUARTER === filtroQuarter && item.cluster === itemSelecionado.cluster
     );
 
     // Ordenar por pontuação (decrescente)
@@ -281,7 +281,7 @@ export default function HomePage() {
     const posicao = ranking.findIndex(item => item.unidade === filtroUnidade) + 1;
 
     return { posicao, total: ranking.length };
-  }, [dadosBrutos, filtroOnda, filtroUnidade, itemSelecionado]);
+  }, [dadosBrutos, filtroQuarter, filtroUnidade, itemSelecionado]);
 
   // Dados para o gráfico de rosca (Gauge)
   const dadosGrafico = [
@@ -289,32 +289,32 @@ export default function HomePage() {
     { name: 'restante', value: Math.max(0, 100 - pontuacao) }
   ];
 
-  // Calcular pontuação média por onda (para os 4 gráficos)
-  const pontuacoesPorOnda = useMemo(() => {
+  // Calcular pontuação média por quarter (para os 4 gráficos)
+  const pontuacoesPorQuarter = useMemo(() => {
     if (!dadosBrutos || dadosBrutos.length === 0 || !filtroUnidade) return [];
 
-    // Buscar as 4 ondas da unidade selecionada
-    const ondas = ['1', '2', '3', '4'];
+    // Buscar as 4 quarters da unidade selecionada
+    const quarters = ['1', '2', '3', '4'];
     
-    return ondas.map(onda => {
-      // Buscar dados da unidade selecionada nesta onda específica
-      const dadosUnidadeNaOnda = dadosBrutos.find(
-        item => item.ONDA === onda && item.nm_unidade === filtroUnidade
+    return quarters.map(quarter => {
+      // Buscar dados da unidade selecionada neste quarter específico
+      const dadosUnidadeNoQuarter = dadosBrutos.find(
+        item => item.QUARTER === quarter && item.nm_unidade === filtroUnidade
       );
 
-      if (!dadosUnidadeNaOnda) {
-        return { onda, pontuacao: 0 };
+      if (!dadosUnidadeNoQuarter) {
+        return { quarter, pontuacao: 0 };
       }
 
-      // Pegar a pontuação da unidade nesta onda
+      // Pegar a pontuação da unidade neste quarter
       const pontuacao = parseFloat(
-        (dadosUnidadeNaOnda['Pontuação com bonus'] || dadosUnidadeNaOnda['Pontuação com Bonus'] || '0')
+        (dadosUnidadeNoQuarter['Pontuação com bonus'] || dadosUnidadeNoQuarter['Pontuação com Bonus'] || '0')
           .toString()
           .replace(',', '.')
       ) || 0;
 
       return {
-        onda,
+        quarter,
         pontuacao: Math.round(pontuacao * 100) / 100
       };
     });
@@ -322,7 +322,7 @@ export default function HomePage() {
 
   // Calcular performance por indicador (7 indicadores)
   const indicadores = useMemo(() => {
-    if (!itemSelecionado || !dadosBrutos || !filtroOnda) return [];
+    if (!itemSelecionado || !dadosBrutos || !filtroQuarter) return [];
 
     const cluster = itemSelecionado.cluster;
 
@@ -383,22 +383,22 @@ export default function HomePage() {
       }
     ];
 
-    // Filtrar apenas unidades da mesma onda
-    const unidadesDaOnda = dadosBrutos.filter(item => item.ONDA === filtroOnda);
-    const unidadesDoCluster = unidadesDaOnda.filter(item => item.cluster === cluster);
+    // Filtrar apenas unidades do mesmo quarter
+    const unidadesDoQuarter = dadosBrutos.filter(item => item.QUARTER === filtroQuarter);
+    const unidadesDoCluster = unidadesDoQuarter.filter(item => item.cluster === cluster);
 
     return listaIndicadores.map(ind => {
       // Pontuação da unidade selecionada
       const pontuacaoUnidade = parseValor(itemSelecionado[ind.coluna]);
 
       // Calcular melhor pontuação da rede neste indicador
-      const pontuacoesRede = unidadesDaOnda
+      const pontuacoesRede = unidadesDoQuarter
         .map(item => parseValor(item[ind.coluna]))
         .filter(val => val > 0);
       const melhorRede = pontuacoesRede.length > 0 ? Math.max(...pontuacoesRede) : 0;
 
       // Encontrar unidade com melhor pontuação na rede
-      const unidadeMelhorRede = unidadesDaOnda.find(
+      const unidadeMelhorRede = unidadesDoQuarter.find(
         item => parseValor(item[ind.coluna]) === melhorRede
       )?.nm_unidade;
       
@@ -422,14 +422,14 @@ export default function HomePage() {
         unidadeMelhorCluster
       };
     });
-  }, [itemSelecionado, dadosBrutos, filtroOnda]);
+  }, [itemSelecionado, dadosBrutos, filtroQuarter]);
 
   // Inicializar filtros quando os dados carregarem
   React.useEffect(() => {
-    if (listaOndas.length > 0 && !filtroOnda) {
-      setFiltroOnda(listaOndas[0]);
+    if (listaQuarters.length > 0 && !filtroQuarter) {
+      setFiltroQuarter(listaQuarters[0]);
     }
-  }, [listaOndas, filtroOnda]);
+  }, [listaQuarters, filtroQuarter]);
 
   React.useEffect(() => {
     if (listaUnidadesFiltradas.length > 0 && !filtroUnidade) {
@@ -476,16 +476,16 @@ export default function HomePage() {
     <div className="min-h-screen" style={{ backgroundColor: '#212529' }}>
       {/* Sidebar com Filtros */}
       <Sidebar
-        ondas={listaOndas}
+        quarters={listaQuarters}
         unidades={listaUnidadesFiltradas}
         clusters={listaClusters}
         consultores={listaConsultores}
-        ondaSelecionada={filtroOnda}
+        quarterSelecionado={filtroQuarter}
         unidadeSelecionada={filtroUnidade}
         clusterSelecionado={filtroCluster}
         consultorSelecionado={filtroConsultor}
-        onOndaChange={(onda) => {
-          setFiltroOnda(onda);
+        onQuarterChange={(quarter) => {
+          setFiltroQuarter(quarter);
         }}
         onUnidadeChange={setFiltroUnidade}
         onClusterChange={setFiltroCluster}
@@ -577,7 +577,7 @@ export default function HomePage() {
               <div className="text-center mt-4">
                 <p className="text-sm mb-3" style={{ color: '#adb5bd' }}>
                   Média de <strong style={{ color: '#F8F9FA' }}>{filtroUnidade}</strong> em{' '}
-                  <strong style={{ color: '#F8F9FA' }}>todas as ondas</strong>
+                  <strong style={{ color: '#F8F9FA' }}>todos os quarters</strong>
                 </p>
 
                 {/* Rankings baseados na média */}
@@ -632,7 +632,7 @@ export default function HomePage() {
                   fontFamily: 'Poppins, sans-serif'
                 }}
               >
-                DETALHES DA UNIDADE <span style={{ color: '#FF6600' }}>(POR ONDA)</span>
+                DETALHES DA UNIDADE <span style={{ color: '#FF6600' }}>({filtroQuarter === '1' ? '1º' : filtroQuarter === '2' ? '2º' : filtroQuarter === '3' ? '3º' : '4º'} Quarter)</span>
               </h3>
               <div className="space-y-3">
                 {/* 1. Unidade */}
@@ -661,15 +661,17 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {/* 4. Onda */}
+                {/* 4. Quarter */}
                 <div className="grid grid-cols-2 gap-4 py-2" style={{ borderBottom: '1px solid #555' }}>
-                  <span style={{ color: '#adb5bd' }}>Onda:</span>
-                  <span className="font-semibold" style={{ color: '#F8F9FA' }}>{filtroOnda}</span>
+                  <span style={{ color: '#adb5bd' }}>Quarter:</span>
+                  <span className="font-semibold" style={{ color: '#F8F9FA' }}>
+                    {filtroQuarter === '1' ? '1º Quarter' : filtroQuarter === '2' ? '2º Quarter' : filtroQuarter === '3' ? '3º Quarter' : '4º Quarter'}
+                  </span>
                 </div>
 
-                {/* 5. Pontuação na Onda Selecionada */}
+                {/* 5. Pontuação no Quarter Selecionado */}
                 <div className="grid grid-cols-2 gap-4 py-2" style={{ borderBottom: '1px solid #555' }}>
-                  <span style={{ color: '#adb5bd' }}>Pontuação na Onda Selecionada:</span>
+                  <span style={{ color: '#adb5bd' }}>Pontuação no Quarter Selecionado:</span>
                   <span className="font-semibold" style={{ color: '#FF6600', fontSize: '1.1rem' }}>
                     {itemSelecionado['Pontuação com bonus'] || itemSelecionado['Pontuação com Bonus'] || '0'}
                   </span>
@@ -700,7 +702,7 @@ export default function HomePage() {
             <div className="text-center py-12">
               <div className="text-6xl mb-4" style={{ color: '#555' }}>📊</div>
               <h3 className="text-xl font-semibold mb-2" style={{ color: '#F8F9FA' }}>
-                Selecione uma Onda e Unidade
+                Selecione um Quarter e Unidade
               </h3>
               <p style={{ color: '#adb5bd' }}>
                 Use os filtros acima para visualizar a pontuação
@@ -709,7 +711,7 @@ export default function HomePage() {
           </Card>
         )}
 
-        {/* Gráficos de Pontuação por Onda */}
+        {/* Gráficos de Pontuação por Quarter */}
         {itemSelecionado && (
           <div className="mt-8">
             <h2 className="text-2xl font-bold mb-6" style={{ 
@@ -720,28 +722,33 @@ export default function HomePage() {
               borderBottom: '2px solid #FF6600',
               paddingBottom: '8px'
             }}>
-              Pontuação por Onda
+              Pontuação por Quarter
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {pontuacoesPorOnda.map((ondaData) => {
-                const dadosGraficoOnda = [
-                  { name: 'score', value: ondaData.pontuacao },
-                  { name: 'restante', value: Math.max(0, 100 - ondaData.pontuacao) }
+              {pontuacoesPorQuarter.map((quarterData) => {
+                const dadosGraficoQuarter = [
+                  { name: 'score', value: quarterData.pontuacao },
+                  { name: 'restante', value: Math.max(0, 100 - quarterData.pontuacao) }
                 ];
 
+                // Função para converter número em ordinal
+                const getOrdinal = (num: string) => {
+                  return num === '1' ? '1º' : num === '2' ? '2º' : num === '3' ? '3º' : '4º';
+                };
+
                 return (
-                  <Card key={ondaData.onda} titulo={`Onda ${ondaData.onda}`}>
+                  <Card key={quarterData.quarter} titulo={`${getOrdinal(quarterData.quarter)} Quarter`}>
                     <ResponsiveContainer width="100%" height={200}>
                       <PieChart>
                         <defs>
-                          <radialGradient id={`orangeGradient${ondaData.onda}`}>
+                          <radialGradient id={`orangeGradient${quarterData.quarter}`}>
                             <stop offset="0%" stopColor="#ff7a33" stopOpacity={1} />
                             <stop offset="100%" stopColor="#cc4400" stopOpacity={1} />
                           </radialGradient>
                         </defs>
                         <Pie
-                          data={dadosGraficoOnda}
+                          data={dadosGraficoQuarter}
                           cx="50%"
                           cy="50%"
                           innerRadius={55}
@@ -752,11 +759,11 @@ export default function HomePage() {
                           stroke="none"
                           strokeWidth={0}
                         >
-                          <Cell fill={`url(#orangeGradient${ondaData.onda})`} stroke="none" />
+                          <Cell fill={`url(#orangeGradient${quarterData.quarter})`} stroke="none" />
                           <Cell fill="#3a3f47" stroke="none" />
                           
                           <Label
-                            value={ondaData.pontuacao.toFixed(2)}
+                            value={quarterData.pontuacao.toFixed(2)}
                             position="center"
                             style={{ 
                               fontSize: '2.2rem', 
@@ -796,7 +803,7 @@ export default function HomePage() {
                 paddingBottom: '8px'
               }}
             >
-              Performance por Indicador <span style={{ color: '#FF6600' }}>(ONDA {filtroOnda})</span>
+              Performance por Indicador <span style={{ color: '#FF6600' }}>({filtroQuarter === '1' ? '1º' : filtroQuarter === '2' ? '2º' : filtroQuarter === '3' ? '3º' : '4º'} Quarter)</span>
             </h2>
 
             {/* Grid de 7 Cards de Indicadores */}
@@ -834,13 +841,13 @@ export default function HomePage() {
               paddingBottom: '8px'
             }}
           >
-            Tabela Resumo {filtroOnda && <span style={{ color: '#FF6600' }}>(ONDA {filtroOnda})</span>}
+            Tabela Resumo {filtroQuarter && <span style={{ color: '#FF6600' }}>({filtroQuarter === '1' ? '1º' : filtroQuarter === '2' ? '2º' : filtroQuarter === '3' ? '3º' : '4º'} Quarter)</span>}
           </h2>
 
           <Card>
             <TabelaResumo 
               dados={dadosBrutos || []} 
-              ondaSelecionada={filtroOnda}
+              quarterSelecionado={filtroQuarter}
               clusterSelecionado={filtroCluster}
               consultorSelecionado={filtroConsultor}
               nomeColunaConsultor={nomeColunaConsultor}

@@ -6,15 +6,15 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 
 interface SidebarProps {
-  ondas: string[];
+  quarters: string[];
   unidades: string[];
   clusters: string[];
   consultores: string[];
-  ondaSelecionada: string;
+  quarterSelecionado: string;
   unidadeSelecionada: string;
   clusterSelecionado: string;
   consultorSelecionado: string;
-  onOndaChange: (onda: string) => void;
+  onQuarterChange: (QUARTER: string) => void;
   onUnidadeChange: (unidade: string) => void;
   onClusterChange: (cluster: string) => void;
   onConsultorChange: (consultor: string) => void;
@@ -23,15 +23,15 @@ interface SidebarProps {
 }
 
 export default function Sidebar({
-  ondas,
+  quarters,
   unidades,
   clusters,
   consultores,
-  ondaSelecionada,
+  quarterSelecionado,
   unidadeSelecionada,
   clusterSelecionado,
   consultorSelecionado,
-  onOndaChange,
+  onQuarterChange,
   onUnidadeChange,
   onClusterChange,
   onConsultorChange,
@@ -265,7 +265,7 @@ export default function Sidebar({
                 </h3>
               </div>
 
-              {/* Filtro de Onda */}
+              {/* Filtro de Quarter */}
           <div style={{ marginBottom: '25px' }}>
             <label
               style={{
@@ -279,11 +279,11 @@ export default function Sidebar({
                 fontFamily: 'Poppins, sans-serif'
               }}
             >
-              📊 Período
+              📊 Quarter
             </label>
             <select
-              value={ondaSelecionada || ''}
-              onChange={(e) => onOndaChange(e.target.value)}
+              value={quarterSelecionado || ''}
+              onChange={(e) => onQuarterChange(e.target.value)}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -303,9 +303,9 @@ export default function Sidebar({
                 e.currentTarget.style.borderColor = '#555';
               }}
             >
-              {ondas.map((onda) => (
-                <option key={onda} value={onda}>
-                  Onda {onda}
+              {quarters.map((quarter) => (
+                <option key={quarter} value={quarter}>
+                  {quarter === '1' ? '1º Quarter' : quarter === '2' ? '2º Quarter' : quarter === '3' ? '3º Quarter' : '4º Quarter'}
                 </option>
               ))}
             </select>

@@ -53,7 +53,7 @@ export interface Indicador {
   meta: number;
 }
 
-export interface Onda {
+export interface Quarter {
   numero: number;
   nome: string;
   dataInicio: Date;
@@ -75,8 +75,8 @@ export interface PontuacaoIndicador {
   atingimento: number; // Percentual de atingimento da meta
 }
 
-export interface ResultadoOnda {
-  ondaNumero: number;
+export interface ResultadoQuarter {
+  quarterNumero: number;
   franquiaId: string;
   pontuacoes: PontuacaoIndicador[];
   totalIndicadores: number;
@@ -87,7 +87,7 @@ export interface ResultadoOnda {
 
 export interface ResultadoPEX {
   franquiaId: string;
-  resultadosOndas: ResultadoOnda[];
+  resultadosQuarters: ResultadoQuarter[];
   mediaFinal: number;
   ranking: number;
 }

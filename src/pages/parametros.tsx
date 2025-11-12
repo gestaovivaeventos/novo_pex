@@ -48,7 +48,7 @@ export default function ParametrosPage() {
   });
 
   // Filtros dummy para a sidebar
-  const [filtroOnda, setFiltroOnda] = useState<string>('');
+  const [filtroQuarter, setFiltroQuarter] = useState<string>('');
   const [filtroUnidade, setFiltroUnidade] = useState<string>('');
   const [filtroCluster, setFiltroCluster] = useState<string>('');
   const [filtroConsultor, setFiltroConsultor] = useState<string>('');
@@ -386,15 +386,15 @@ export default function ParametrosPage() {
     <div className="min-h-screen" style={{ backgroundColor: '#212529' }}>
       {/* Sidebar */}
       <Sidebar
-        ondas={[]}
+        quarters={[]}
         unidades={[]}
         clusters={[]}
         consultores={[]}
-        ondaSelecionada={filtroOnda}
+        quarterSelecionado={filtroQuarter}
         unidadeSelecionada={filtroUnidade}
         clusterSelecionado={filtroCluster}
         consultorSelecionado={filtroConsultor}
-        onOndaChange={setFiltroOnda}
+        onQuarterChange={setFiltroQuarter}
         onUnidadeChange={setFiltroUnidade}
         onClusterChange={setFiltroCluster}
         onConsultorChange={setFiltroConsultor}
