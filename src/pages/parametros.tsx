@@ -19,6 +19,14 @@ interface UnidadeCluster {
   cluster: string;
 }
 
+interface IndicadorPeso {
+  indicador: string;
+  quarter1: string;
+  quarter2: string;
+  quarter3: string;
+  quarter4: string;
+}
+
 export default function ParametrosPage() {
   const { dados: dadosBrutos } = useSheetsData();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -46,6 +54,13 @@ export default function ParametrosPage() {
     coluna: 'unidade',
     direcao: 'asc'
   });
+
+  // Estados para gerenciamento de pesos
+  const [loadingPesos, setLoadingPesos] = useState(true);
+  const [savingPesos, setSavingPesos] = useState(false);
+  const [indicadoresPesos, setIndicadoresPesos] = useState<IndicadorPeso[]>([]);
+  const [alteracoesPesos, setAlteracoesPesos] = useState<Map<string, Map<string, string>>>(new Map());
+  const [mensagemPesos, setMensagemPesos] = useState<{ tipo: 'success' | 'error'; texto: string } | null>(null);
 
   // Filtros dummy para a sidebar
   const [filtroQuarter, setFiltroQuarter] = useState<string>('');
@@ -187,6 +202,62 @@ export default function ParametrosPage() {
     };
 
     carregarDadosClusters();
+  }, []);
+
+  // Carregar dados de pesos
+  useEffect(() => {
+    const carregarDadosPesos = async () => {
+      try {
+        setLoadingPesos(true);
+        const response = await fetch('/api/pesos');
+        
+        if (!response.ok) {
+          throw new Error('Erro ao carregar dados de pesos');
+        }
+
+        const dados = await response.json();
+        
+        console.log('Dados de pesos recebidos:', dados);
+        
+        if (dados.length > 0) {
+          const headers = dados[0];
+          const rows = dados.slice(1);
+          
+          console.log('Headers pesos:', headers);
+          console.log('Primeiras linhas pesos:', rows.slice(0, 3));
+          
+          // Estrutura esperada: coluna B (INDICADOR), C (QUARTER 1), D (QUARTER 2), E (QUARTER 3), F (QUARTER 4)
+          const indicadores: IndicadorPeso[] = rows
+            .filter((row: any[]) => row[0]) // Filtrar linhas com indicador
+            .map((row: any[]) => {
+              // Função auxiliar para converter vírgula em ponto
+              const formatarPeso = (valor: any): string => {
+                if (valor === undefined || valor === null || valor === '') return '0';
+                return String(valor).replace(',', '.');
+              };
+
+              return {
+                indicador: row[0] || '',
+                quarter1: formatarPeso(row[1]),
+                quarter2: formatarPeso(row[2]),
+                quarter3: formatarPeso(row[3]),
+                quarter4: formatarPeso(row[4])
+              };
+            });
+          
+          console.log('Indicadores com pesos:', indicadores);
+          
+          setIndicadoresPesos(indicadores);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados de pesos:', error);
+        setMensagemPesos({ tipo: 'error', texto: 'Erro ao carregar dados de pesos da planilha' });
+      } finally {
+        setLoadingPesos(false);
+      }
+    };
+
+    carregarDadosPesos();
   }, []);
 
   // Atualizar consultor localmente
@@ -382,8 +453,172 @@ export default function ParametrosPage() {
     }
   };
 
+  // Atualizar peso localmente
+  const handlePesoChange = (indicador: string, quarter: '1' | '2' | '3' | '4', novoPeso: string) => {
+    const novasAlteracoes = new Map(alteracoesPesos);
+    
+    if (!novasAlteracoes.has(indicador)) {
+      novasAlteracoes.set(indicador, new Map());
+    }
+    
+    novasAlteracoes.get(indicador)!.set(quarter, novoPeso);
+    setAlteracoesPesos(novasAlteracoes);
+  };
+
+  // Calcular soma total por quarter
+  const calcularSomaPorQuarter = (quarter: '1' | '2' | '3' | '4'): number => {
+    return indicadoresPesos.reduce((soma, ind) => {
+      const alteracoesDoIndicador = alteracoesPesos.get(ind.indicador);
+      let valorAtual = '';
+      
+      switch(quarter) {
+        case '1': valorAtual = alteracoesDoIndicador?.get('1') || ind.quarter1; break;
+        case '2': valorAtual = alteracoesDoIndicador?.get('2') || ind.quarter2; break;
+        case '3': valorAtual = alteracoesDoIndicador?.get('3') || ind.quarter3; break;
+        case '4': valorAtual = alteracoesDoIndicador?.get('4') || ind.quarter4; break;
+      }
+      
+      return soma + (parseFloat(valorAtual) || 0);
+    }, 0);
+  };
+
+  // Validar soma de pesos (deve ser exatamente 10 para cada quarter)
+  const validarSomaPesos = (): { valido: boolean; mensagem: string } => {
+    const somaQ1 = calcularSomaPorQuarter('1');
+    const somaQ2 = calcularSomaPorQuarter('2');
+    const somaQ3 = calcularSomaPorQuarter('3');
+    const somaQ4 = calcularSomaPorQuarter('4');
+
+    const erros: string[] = [];
+    if (somaQ1 !== 10) erros.push(`1º Quarter: ${somaQ1.toFixed(1)}`);
+    if (somaQ2 !== 10) erros.push(`2º Quarter: ${somaQ2.toFixed(1)}`);
+    if (somaQ3 !== 10) erros.push(`3º Quarter: ${somaQ3.toFixed(1)}`);
+    if (somaQ4 !== 10) erros.push(`4º Quarter: ${somaQ4.toFixed(1)}`);
+
+    if (erros.length > 0) {
+      return {
+        valido: false,
+        mensagem: `⚠️ A soma dos pesos deve ser exatamente 10 para cada quarter. Valores atuais: ${erros.join(', ')}`
+      };
+    }
+
+    return { valido: true, mensagem: '' };
+  };
+
+  // Salvar alterações de pesos
+  const salvarAlteracoesPesos = async () => {
+    if (alteracoesPesos.size === 0) {
+      setMensagemPesos({ tipo: 'error', texto: 'Nenhuma alteração para salvar' });
+      return;
+    }
+
+    // Validar soma antes de salvar
+    const validacao = validarSomaPesos();
+    if (!validacao.valido) {
+      setMensagemPesos({ tipo: 'error', texto: validacao.mensagem });
+      return;
+    }
+
+    try {
+      setSavingPesos(true);
+      setMensagemPesos(null);
+
+      // Contar total de alterações
+      let totalAlteracoes = 0;
+      alteracoesPesos.forEach(quarters => {
+        totalAlteracoes += quarters.size;
+      });
+
+      console.log('Salvando alterações de pesos:', alteracoesPesos);
+      
+      let contador = 0;
+      const alteracoesArray = Array.from(alteracoesPesos.entries());
+      for (let i = 0; i < alteracoesArray.length; i++) {
+        const [indicador, quarters] = alteracoesArray[i];
+        const quartersArray = Array.from(quarters.entries());
+        
+        for (let j = 0; j < quartersArray.length; j++) {
+          const [quarter, peso] = quartersArray[j];
+          contador++;
+          console.log(`Salvando peso ${contador}/${totalAlteracoes}:`, { indicador, quarter, peso });
+          
+          const response = await fetch('/api/pesos', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ indicador, quarter, peso }),
+          });
+
+          const resultado = await response.json();
+          console.log('Resposta da API (pesos):', resultado);
+
+          if (!response.ok) {
+            console.error('Erro na resposta (pesos):', resultado);
+            throw new Error(resultado.message || `Erro ao atualizar peso de ${indicador} no Quarter ${quarter}`);
+          }
+        }
+      }
+
+      // Atualizar estado local
+      const novosIndicadores = indicadoresPesos.map(ind => {
+        const alteracoesDoIndicador = alteracoesPesos.get(ind.indicador);
+        if (!alteracoesDoIndicador) return ind;
+
+        return {
+          ...ind,
+          quarter1: alteracoesDoIndicador.get('1') || ind.quarter1,
+          quarter2: alteracoesDoIndicador.get('2') || ind.quarter2,
+          quarter3: alteracoesDoIndicador.get('3') || ind.quarter3,
+          quarter4: alteracoesDoIndicador.get('4') || ind.quarter4,
+        };
+      });
+      
+      setIndicadoresPesos(novosIndicadores);
+      setAlteracoesPesos(new Map());
+      
+      setMensagemPesos({ tipo: 'success', texto: `${totalAlteracoes} peso(s) atualizado(s) com sucesso!` });
+    } catch (error: any) {
+      console.error('Erro ao salvar pesos:', error);
+      setMensagemPesos({ tipo: 'error', texto: error.message || 'Erro ao salvar alterações de pesos' });
+    } finally {
+      setSavingPesos(false);
+    }
+  };
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#212529' }}>
+      {/* CSS para aumentar as setas dos inputs de número */}
+      <style jsx>{`
+        input[type="number"].peso-input::-webkit-inner-spin-button,
+        input[type="number"].peso-input::-webkit-outer-spin-button {
+          opacity: 0;
+          width: 24px;
+          height: 24px;
+          margin-left: 8px;
+          cursor: pointer;
+          transition: opacity 0.2s;
+        }
+
+        input[type="number"].peso-input:focus::-webkit-inner-spin-button,
+        input[type="number"].peso-input:focus::-webkit-outer-spin-button,
+        input[type="number"].peso-input:hover::-webkit-inner-spin-button,
+        input[type="number"].peso-input:hover::-webkit-outer-spin-button {
+          opacity: 1;
+        }
+
+        input[type="number"].peso-input {
+          -moz-appearance: textfield;
+          padding-right: 32px !important;
+        }
+
+        input[type="number"].peso-input::-webkit-inner-spin-button {
+          -webkit-appearance: inner-spin-button;
+          display: inline-block;
+          position: relative;
+        }
+      `}</style>
+
       {/* Sidebar */}
       <Sidebar
         quarters={[]}
@@ -910,6 +1145,341 @@ export default function ParametrosPage() {
                     }}
                   >
                     {savingClusters ? 'Salvando...' : 'Salvar Alterações'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* SEÇÃO DE GERENCIAMENTO DE PESOS POR QUARTER */}
+          <h1 
+            className="text-3xl font-bold mb-6 mt-12" 
+            style={{ 
+              color: '#adb5bd', 
+              fontFamily: 'Poppins, sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              borderBottom: '2px solid #FF6600',
+              paddingBottom: '12px'
+            }}
+          >
+            Gerenciamento de Pesos por Quarter
+          </h1>
+
+          {/* Mensagem de feedback - Pesos */}
+          {mensagemPesos && (
+            <div style={{
+              padding: '12px 16px',
+              marginBottom: '20px',
+              borderRadius: '8px',
+              backgroundColor: mensagemPesos.tipo === 'success' ? '#22c55e20' : '#ef444420',
+              border: `1px solid ${mensagemPesos.tipo === 'success' ? '#22c55e' : '#ef4444'}`,
+              color: mensagemPesos.tipo === 'success' ? '#22c55e' : '#ef4444',
+              fontFamily: 'Poppins, sans-serif'
+            }}>
+              {mensagemPesos.texto}
+            </div>
+          )}
+
+          <Card>
+            {loadingPesos ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto" style={{ borderColor: '#FF6600' }}></div>
+                <p className="mt-4" style={{ color: '#adb5bd' }}>Carregando dados...</p>
+              </div>
+            ) : (
+              <div>
+                {/* Cabeçalho da tabela */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
+                  gap: '16px',
+                  padding: '12px 16px',
+                  backgroundColor: '#2a2f36',
+                  borderRadius: '8px 8px 0 0',
+                  fontWeight: 600,
+                  color: '#FF6600',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontSize: '0.9rem'
+                }}>
+                  <div>INDICADOR</div>
+                  <div style={{ textAlign: 'center' }}>1º QUARTER</div>
+                  <div style={{ textAlign: 'center' }}>2º QUARTER</div>
+                  <div style={{ textAlign: 'center' }}>3º QUARTER</div>
+                  <div style={{ textAlign: 'center' }}>4º QUARTER</div>
+                </div>
+
+                {/* Lista de indicadores */}
+                <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                  {indicadoresPesos.length === 0 ? (
+                    <div style={{
+                      padding: '40px',
+                      textAlign: 'center',
+                      color: '#adb5bd',
+                      fontFamily: 'Poppins, sans-serif'
+                    }}>
+                      Nenhum dado disponível
+                    </div>
+                  ) : (
+                    indicadoresPesos.map((ind, index) => {
+                      const alteracoesDoIndicador = alteracoesPesos.get(ind.indicador);
+                      const foiAlterado = alteracoesDoIndicador && alteracoesDoIndicador.size > 0;
+
+                      const peso1Atual = alteracoesDoIndicador?.get('1') || ind.quarter1;
+                      const peso2Atual = alteracoesDoIndicador?.get('2') || ind.quarter2;
+                      const peso3Atual = alteracoesDoIndicador?.get('3') || ind.quarter3;
+                      const peso4Atual = alteracoesDoIndicador?.get('4') || ind.quarter4;
+
+                      return (
+                        <div 
+                          key={ind.indicador}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
+                            gap: '16px',
+                            padding: '12px 16px',
+                            borderBottom: '1px solid #343A40',
+                            backgroundColor: foiAlterado 
+                              ? '#2a2f3680' 
+                              : index % 2 === 0 
+                                ? '#2a2f36' 
+                                : '#23272d',
+                            fontFamily: 'Poppins, sans-serif',
+                            transition: 'background-color 0.2s',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <div style={{ 
+                            color: '#F8F9FA',
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontWeight: foiAlterado ? 600 : 400
+                          }}>
+                            {foiAlterado && <span style={{ color: '#FF6600', marginRight: '8px' }}>●</span>}
+                            {ind.indicador}
+                          </div>
+                          
+                          {/* Input Quarter 1 */}
+                          <div>
+                            <input
+                              type="number"
+                              min="0"
+                              max="5"
+                              step="0.5"
+                              value={peso1Atual}
+                              onChange={(e) => handlePesoChange(ind.indicador, '1', e.target.value)}
+                              className="peso-input"
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDoIndicador?.has('1') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.9rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input Quarter 2 */}
+                          <div>
+                            <input
+                              type="number"
+                              min="0"
+                              max="5"
+                              step="0.5"
+                              value={peso2Atual}
+                              onChange={(e) => handlePesoChange(ind.indicador, '2', e.target.value)}
+                              className="peso-input"
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDoIndicador?.has('2') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.9rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input Quarter 3 */}
+                          <div>
+                            <input
+                              type="number"
+                              min="0"
+                              max="5"
+                              step="0.5"
+                              value={peso3Atual}
+                              onChange={(e) => handlePesoChange(ind.indicador, '3', e.target.value)}
+                              className="peso-input"
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDoIndicador?.has('3') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.9rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input Quarter 4 */}
+                          <div>
+                            <input
+                              type="number"
+                              min="0"
+                              max="5"
+                              step="0.5"
+                              value={peso4Atual}
+                              onChange={(e) => handlePesoChange(ind.indicador, '4', e.target.value)}
+                              className="peso-input"
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDoIndicador?.has('4') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.9rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Linha de TOTAL */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
+                  gap: '16px',
+                  padding: '16px',
+                  backgroundColor: '#1a1d21',
+                  borderTop: '3px solid #FF6600',
+                  borderBottom: '2px solid #343A40',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  alignItems: 'center'
+                }}>
+                  <div style={{ color: '#FF6600', textTransform: 'uppercase' }}>
+                    TOTAL
+                  </div>
+                  
+                  {/* Total Quarter 1 */}
+                  <div style={{ 
+                    textAlign: 'center',
+                    color: calcularSomaPorQuarter('1') === 10 ? '#22c55e' : '#ef4444',
+                    fontSize: '1.1rem'
+                  }}>
+                    {calcularSomaPorQuarter('1').toFixed(1)}
+                    {calcularSomaPorQuarter('1') !== 10 && (
+                      <div style={{ fontSize: '0.7rem', marginTop: '2px', opacity: 0.8 }}>
+                        {calcularSomaPorQuarter('1') < 10 ? '⬇️ Faltam' : '⬆️ Excesso'} {Math.abs(calcularSomaPorQuarter('1') - 10).toFixed(1)}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Total Quarter 2 */}
+                  <div style={{ 
+                    textAlign: 'center',
+                    color: calcularSomaPorQuarter('2') === 10 ? '#22c55e' : '#ef4444',
+                    fontSize: '1.1rem'
+                  }}>
+                    {calcularSomaPorQuarter('2').toFixed(1)}
+                    {calcularSomaPorQuarter('2') !== 10 && (
+                      <div style={{ fontSize: '0.7rem', marginTop: '2px', opacity: 0.8 }}>
+                        {calcularSomaPorQuarter('2') < 10 ? '⬇️ Faltam' : '⬆️ Excesso'} {Math.abs(calcularSomaPorQuarter('2') - 10).toFixed(1)}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Total Quarter 3 */}
+                  <div style={{ 
+                    textAlign: 'center',
+                    color: calcularSomaPorQuarter('3') === 10 ? '#22c55e' : '#ef4444',
+                    fontSize: '1.1rem'
+                  }}>
+                    {calcularSomaPorQuarter('3').toFixed(1)}
+                    {calcularSomaPorQuarter('3') !== 10 && (
+                      <div style={{ fontSize: '0.7rem', marginTop: '2px', opacity: 0.8 }}>
+                        {calcularSomaPorQuarter('3') < 10 ? '⬇️ Faltam' : '⬆️ Excesso'} {Math.abs(calcularSomaPorQuarter('3') - 10).toFixed(1)}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Total Quarter 4 */}
+                  <div style={{ 
+                    textAlign: 'center',
+                    color: calcularSomaPorQuarter('4') === 10 ? '#22c55e' : '#ef4444',
+                    fontSize: '1.1rem'
+                  }}>
+                    {calcularSomaPorQuarter('4').toFixed(1)}
+                    {calcularSomaPorQuarter('4') !== 10 && (
+                      <div style={{ fontSize: '0.7rem', marginTop: '2px', opacity: 0.8 }}>
+                        {calcularSomaPorQuarter('4') < 10 ? '⬇️ Faltam' : '⬆️ Excesso'} {Math.abs(calcularSomaPorQuarter('4') - 10).toFixed(1)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Botão de salvar */}
+                <div style={{ 
+                  padding: '16px',
+                  borderTop: '2px solid #343A40',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div style={{ color: '#adb5bd', fontSize: '0.9rem', fontFamily: 'Poppins, sans-serif' }}>
+                    {alteracoesPesos.size > 0 ? (
+                      <span style={{ color: '#FF6600', fontWeight: 600 }}>
+                        {Array.from(alteracoesPesos.values()).reduce((acc, m) => acc + m.size, 0)} alteração(ões) pendente(s)
+                      </span>
+                    ) : (
+                      'Nenhuma alteração pendente'
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={salvarAlteracoesPesos}
+                    disabled={savingPesos || alteracoesPesos.size === 0}
+                    style={{
+                      padding: '10px 24px',
+                      background: alteracoesPesos.size > 0 && !savingPesos
+                        ? 'linear-gradient(to bottom, #22c55e 0%, #16a34a 50%, #15803d 100%)'
+                        : 'linear-gradient(to bottom, #4a5563 0%, #3a4553 50%, #2a3543 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      cursor: alteracoesPesos.size > 0 && !savingPesos ? 'pointer' : 'not-allowed',
+                      fontFamily: 'Poppins, sans-serif',
+                      opacity: savingPesos || alteracoesPesos.size === 0 ? 0.6 : 1,
+                      boxShadow: alteracoesPesos.size > 0 && !savingPesos
+                        ? '0 4px 12px rgba(34, 197, 94, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                        : 'none',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {savingPesos ? 'Salvando...' : 'Salvar Alterações'}
                   </button>
                 </div>
               </div>
