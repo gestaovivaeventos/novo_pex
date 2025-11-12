@@ -520,10 +520,17 @@ export default function HomePage() {
                   marginBottom: '16px',
                   paddingBottom: '8px',
                   borderBottom: '1px solid #555',
-                  fontFamily: 'Poppins, sans-serif'
+                  fontFamily: 'Poppins, sans-serif',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}
               >
-                PONTUAÇÃO TOTAL <span style={{ color: '#FF6600' }}>({filtroUnidade})</span>
+                PONTUAÇÃO TOTAL 
+                <span style={{ color: '#FF6600' }}>({filtroUnidade})</span>
+                {rankingRedePorMedia.posicao === 1 && (
+                  <span style={{ fontSize: '1.4rem', marginLeft: '4px' }}>👑</span>
+                )}
               </h3>
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>

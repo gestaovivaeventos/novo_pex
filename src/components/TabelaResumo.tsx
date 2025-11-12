@@ -155,7 +155,7 @@ export default function TabelaResumo({
           style={{
             background: 'linear-gradient(to bottom, #9CA3AF 0%, #6B7280 50%, #4B5563 100%)',
             color: '#FFFFFF',
-            padding: '10px 20px',
+            padding: '6px 20px',
             borderRadius: '6px',
             border: 'none',
             cursor: 'pointer',

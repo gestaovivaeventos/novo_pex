@@ -36,12 +36,37 @@ export default function Sidebar({
   onCollapseChange
 }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [searchUnidade, setSearchUnidade] = useState('');
+  const [isUnidadeDropdownOpen, setIsUnidadeDropdownOpen] = useState(false);
 
   const toggleCollapse = () => {
     const newCollapsedState = !isCollapsed;
     setIsCollapsed(newCollapsedState);
     onCollapseChange(newCollapsedState);
   };
+  
+  // Filtrar unidades baseado na pesquisa
+  const unidadesFiltradas = unidades.filter(unidade =>
+    unidade.toLowerCase().includes(searchUnidade.toLowerCase())
+  );
+  
+  // Fechar dropdown quando clicar fora
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.unidade-dropdown')) {
+        setIsUnidadeDropdownOpen(false);
+      }
+    };
+    
+    if (isUnidadeDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isUnidadeDropdownOpen]);
 
   return (
     <div
@@ -169,7 +194,6 @@ export default function Sidebar({
                 e.currentTarget.style.borderColor = '#555';
               }}
             >
-              <option value="">Todas as Ondas</option>
               {ondas.map((onda) => (
                 <option key={onda} value={onda}>
                   Onda {onda}
@@ -178,7 +202,7 @@ export default function Sidebar({
             </select>
           </div>
 
-          {/* Filtro de Unidade */}
+          {/* Filtro de Consultor */}
           <div style={{ marginBottom: '25px' }}>
             <label
               style={{
@@ -192,11 +216,11 @@ export default function Sidebar({
                 fontFamily: 'Poppins, sans-serif'
               }}
             >
-              🏢 Unidades
+              👤 Consultor Responsável
             </label>
             <select
-              value={unidadeSelecionada || ''}
-              onChange={(e) => onUnidadeChange(e.target.value)}
+              value={consultorSelecionado || ''}
+              onChange={(e) => onConsultorChange(e.target.value)}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -216,10 +240,10 @@ export default function Sidebar({
                 e.currentTarget.style.borderColor = '#555';
               }}
             >
-              <option value="">Todas as Unidades</option>
-              {unidades.map((unidade) => (
-                <option key={unidade} value={unidade}>
-                  {unidade}
+              <option value="">Todos os Consultores</option>
+              {consultores.map((consultor) => (
+                <option key={consultor} value={consultor}>
+                  {consultor}
                 </option>
               ))}
             </select>
@@ -272,8 +296,8 @@ export default function Sidebar({
             </select>
           </div>
 
-          {/* Filtro de Consultor */}
-          <div style={{ marginBottom: '25px' }}>
+          {/* Filtro de Unidade */}
+          <div style={{ marginBottom: '25px' }} className="unidade-dropdown">
             <label
               style={{
                 display: 'block',
@@ -286,37 +310,159 @@ export default function Sidebar({
                 fontFamily: 'Poppins, sans-serif'
               }}
             >
-              👤 Consultor Responsável
+              🏢 Unidades
             </label>
-            <select
-              value={consultorSelecionado || ''}
-              onChange={(e) => onConsultorChange(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#343A40',
-                color: 'white',
-                border: '1px solid #555',
-                borderRadius: '8px',
-                fontSize: '0.9rem',
-                fontFamily: 'Poppins, sans-serif',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#FF6600';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#555';
-              }}
-            >
-              <option value="">Todos os Consultores</option>
-              {consultores.map((consultor) => (
-                <option key={consultor} value={consultor}>
-                  {consultor}
-                </option>
-              ))}
-            </select>
+            
+            {/* Dropdown customizado com pesquisa integrada */}
+            <div style={{ position: 'relative' }}>
+              <div
+                onClick={() => setIsUnidadeDropdownOpen(!isUnidadeDropdownOpen)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: '#343A40',
+                  color: unidadeSelecionada ? 'white' : '#aaa',
+                  border: '1px solid #555',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  fontFamily: 'Poppins, sans-serif',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#FF6600';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#555';
+                }}
+              >
+                <span>{unidadeSelecionada || 'Todas as Unidades'}</span>
+                <span style={{ fontSize: '0.7rem' }}>▼</span>
+              </div>
+              
+              {/* Menu dropdown */}
+              {isUnidadeDropdownOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    marginTop: '4px',
+                    backgroundColor: '#343A40',
+                    border: '1px solid #FF6600',
+                    borderRadius: '8px',
+                    zIndex: 1000,
+                    maxHeight: '300px',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+                  }}
+                >
+                  {/* Caixa de pesquisa dentro do dropdown */}
+                  <div style={{ padding: '8px', borderBottom: '1px solid #555' }}>
+                    <input
+                      type="text"
+                      placeholder="🔍 Pesquisar..."
+                      value={searchUnidade}
+                      onChange={(e) => setSearchUnidade(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        width: '100%',
+                        padding: '8px 10px',
+                        backgroundColor: '#2a2f36',
+                        color: 'white',
+                        border: '1px solid #555',
+                        borderRadius: '6px',
+                        fontSize: '0.85rem',
+                        fontFamily: 'Poppins, sans-serif',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = '#FF6600';
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = '#555';
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Lista de opções */}
+                  <div style={{ maxHeight: '240px', overflowY: 'auto' }}>
+                    <div
+                      onClick={() => {
+                        onUnidadeChange('');
+                        setIsUnidadeDropdownOpen(false);
+                        setSearchUnidade('');
+                      }}
+                      style={{
+                        padding: '10px 12px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontFamily: 'Poppins, sans-serif',
+                        color: !unidadeSelecionada ? '#FF6600' : '#aaa',
+                        fontWeight: !unidadeSelecionada ? 600 : 400,
+                        backgroundColor: !unidadeSelecionada ? '#2a2f36' : 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#2a2f36';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (unidadeSelecionada) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
+                    >
+                      Todas as Unidades
+                    </div>
+                    
+                    {unidadesFiltradas.map((unidade) => (
+                      <div
+                        key={unidade}
+                        onClick={() => {
+                          onUnidadeChange(unidade);
+                          setIsUnidadeDropdownOpen(false);
+                          setSearchUnidade('');
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          cursor: 'pointer',
+                          fontSize: '0.9rem',
+                          fontFamily: 'Poppins, sans-serif',
+                          color: unidadeSelecionada === unidade ? '#FF6600' : 'white',
+                          fontWeight: unidadeSelecionada === unidade ? 600 : 400,
+                          backgroundColor: unidadeSelecionada === unidade ? '#2a2f36' : 'transparent'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#2a2f36';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (unidadeSelecionada !== unidade) {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }
+                        }}
+                      >
+                        {unidade}
+                      </div>
+                    ))}
+                    
+                    {searchUnidade && unidadesFiltradas.length === 0 && (
+                      <div style={{
+                        padding: '16px 12px',
+                        textAlign: 'center',
+                        color: '#aaa',
+                        fontSize: '0.85rem',
+                        fontStyle: 'italic'
+                      }}>
+                        Nenhuma unidade encontrada
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
