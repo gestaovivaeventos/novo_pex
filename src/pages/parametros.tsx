@@ -27,6 +27,17 @@ interface IndicadorPeso {
   quarter4: string;
 }
 
+interface MetaCluster {
+  cluster: string;
+  vvr: string;
+  percentualAtigimentoMac: string;
+  percentualEndividamento: string;
+  nps: string;
+  percentualMcEntrega: string;
+  enps: string;
+  conformidade: string;
+}
+
 export default function ParametrosPage() {
   const { dados: dadosBrutos } = useSheetsData();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -61,6 +72,14 @@ export default function ParametrosPage() {
   const [indicadoresPesos, setIndicadoresPesos] = useState<IndicadorPeso[]>([]);
   const [alteracoesPesos, setAlteracoesPesos] = useState<Map<string, Map<string, string>>>(new Map());
   const [mensagemPesos, setMensagemPesos] = useState<{ tipo: 'success' | 'error'; texto: string } | null>(null);
+
+  // Estados para gerenciamento de metas por cluster
+  const [loadingMetas, setLoadingMetas] = useState(true);
+  const [savingMetas, setSavingMetas] = useState(false);
+  const [metasClusters, setMetasClusters] = useState<MetaCluster[]>([]);
+  const [alteracoesMetas, setAlteracoesMetas] = useState<Map<string, Map<string, string>>>(new Map());
+  const [mensagemMetas, setMensagemMetas] = useState<{ tipo: 'success' | 'error'; texto: string } | null>(null);
+  const [clustersDisponiveis, setClustersDisponiveis] = useState<string[]>([]);
 
   // Filtros dummy para a sidebar
   const [filtroQuarter, setFiltroQuarter] = useState<string>('');
@@ -258,6 +277,122 @@ export default function ParametrosPage() {
     };
 
     carregarDadosPesos();
+  }, []);
+
+  // Carregar dados de metas por cluster
+  useEffect(() => {
+    const carregarDadosMetas = async () => {
+      try {
+        console.log('=== INICIANDO CARREGAMENTO DE METAS ===');
+        setLoadingMetas(true);
+        const response = await fetch('/api/metas');
+        
+        console.log('Status da resposta:', response.status);
+        console.log('Response OK:', response.ok);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erro na resposta:', errorText);
+          throw new Error('Erro ao carregar dados de metas');
+        }
+
+        const dados = await response.json();
+        
+        console.log('Dados de metas recebidos (raw):', dados);
+        console.log('Tipo dos dados:', typeof dados);
+        console.log('É array?', Array.isArray(dados));
+        console.log('Length:', dados.length);
+        
+        if (dados.length > 0) {
+          const headers = dados[0];
+          const rows = dados.slice(1);
+          
+          console.log('Headers metas:', headers);
+          console.log('Total de linhas de dados:', rows.length);
+          console.log('Primeiras 3 linhas metas:', rows.slice(0, 3));
+          
+          // Função auxiliar para converter vírgula em ponto e limpar formatação
+          const formatarValor = (valor: any): string => {
+            if (valor === undefined || valor === null || valor === '') return '0';
+            
+            // Converter para string
+            let valorStr = String(valor);
+            
+            // Remover formatação de moeda (R$, espaços)
+            valorStr = valorStr.replace(/R\$\s*/g, '');
+            
+            // Remover símbolo de percentual
+            valorStr = valorStr.replace(/%/g, '');
+            
+            // Remover pontos de milhar (1.000 -> 1000)
+            valorStr = valorStr.replace(/\./g, '');
+            
+            // Substituir vírgula por ponto (decimal brasileiro para JS)
+            valorStr = valorStr.replace(',', '.');
+            
+            // Remover espaços
+            valorStr = valorStr.trim();
+            
+            // Se ficou vazio após limpeza, retornar '0'
+            if (valorStr === '' || isNaN(parseFloat(valorStr))) {
+              return '0';
+            }
+            
+            return valorStr;
+          };
+          
+          // Estrutura: coluna A (CLUSTER), B (VVR), C (% ATIGIMENTO MAC), D (% ENDIVIDAMENTO), 
+          // E (NPS), F (% MC ENTREGA), G (E-NPS), H (CONFORMIDADE)
+          const metas: MetaCluster[] = rows
+            .filter((row: any[]) => row[0]) // Filtrar linhas com cluster
+            .map((row: any[]) => {
+              console.log('Processando row:', row);
+              console.log('  Cluster:', row[0]);
+              console.log('  VVR (B):', row[1], 'tipo:', typeof row[1]);
+              console.log('  % ATIGIMENTO MAC (C):', row[2], 'tipo:', typeof row[2]);
+              console.log('  % ENDIVIDAMENTO (D):', row[3], 'tipo:', typeof row[3]);
+              console.log('  NPS (E):', row[4], 'tipo:', typeof row[4]);
+              console.log('  % MC ENTREGA (F):', row[5], 'tipo:', typeof row[5]);
+              console.log('  E-NPS (G):', row[6], 'tipo:', typeof row[6]);
+              console.log('  CONFORMIDADE (H):', row[7], 'tipo:', typeof row[7]);
+              
+              return {
+                cluster: row[0] || '',
+                vvr: formatarValor(row[1]),
+                percentualAtigimentoMac: formatarValor(row[2]),
+                percentualEndividamento: formatarValor(row[3]),
+                nps: formatarValor(row[4]),
+                percentualMcEntrega: formatarValor(row[5]),
+                enps: formatarValor(row[6]),
+                conformidade: formatarValor(row[7])
+              };
+            });
+          
+          console.log('Metas processadas:', metas);
+          console.log('Total de metas:', metas.length);
+          
+          if (metas.length === 0) {
+            console.warn('⚠️ ATENÇÃO: Array de metas está vazio após processamento!');
+          } else {
+            console.log('✅ Atualizando estado com', metas.length, 'metas');
+          }
+          
+          setMetasClusters(metas);
+          console.log('✅ setMetasClusters chamado');
+        } else {
+          console.warn('Nenhum dado retornado da API');
+        }
+      } catch (error) {
+        console.error('ERRO ao carregar dados de metas:', error);
+        console.error('Stack trace:', error instanceof Error ? error.stack : 'N/A');
+        setMensagemMetas({ tipo: 'error', texto: 'Erro ao carregar dados de metas da planilha' });
+      } finally {
+        setLoadingMetas(false);
+        console.log('=== CARREGAMENTO DE METAS FINALIZADO ===');
+      }
+    };
+
+    carregarDadosMetas();
   }, []);
 
   // Atualizar consultor localmente
@@ -583,6 +718,95 @@ export default function ParametrosPage() {
       setMensagemPesos({ tipo: 'error', texto: error.message || 'Erro ao salvar alterações de pesos' });
     } finally {
       setSavingPesos(false);
+    }
+  };
+
+  // Atualizar meta localmente
+  const handleMetaChange = (cluster: string, coluna: string, novoValor: string) => {
+    const novasAlteracoes = new Map(alteracoesMetas);
+    
+    if (!novasAlteracoes.has(cluster)) {
+      novasAlteracoes.set(cluster, new Map());
+    }
+    
+    novasAlteracoes.get(cluster)!.set(coluna, novoValor);
+    setAlteracoesMetas(novasAlteracoes);
+  };
+
+  // Salvar alterações de metas
+  const salvarAlteracoesMetas = async () => {
+    if (alteracoesMetas.size === 0) {
+      setMensagemMetas({ tipo: 'error', texto: 'Nenhuma alteração para salvar' });
+      return;
+    }
+
+    try {
+      setSavingMetas(true);
+      setMensagemMetas(null);
+
+      // Contar total de alterações
+      let totalAlteracoes = 0;
+      alteracoesMetas.forEach(colunas => {
+        totalAlteracoes += colunas.size;
+      });
+
+      console.log('Salvando alterações de metas:', alteracoesMetas);
+      
+      let contador = 0;
+      const alteracoesArray = Array.from(alteracoesMetas.entries());
+      for (let i = 0; i < alteracoesArray.length; i++) {
+        const [cluster, colunas] = alteracoesArray[i];
+        const colunasArray = Array.from(colunas.entries());
+        
+        for (let j = 0; j < colunasArray.length; j++) {
+          const [coluna, valor] = colunasArray[j];
+          contador++;
+          console.log(`Salvando meta ${contador}/${totalAlteracoes}:`, { cluster, coluna, valor });
+          
+          const response = await fetch('/api/metas', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ cluster, coluna, valor }),
+          });
+
+          const resultado = await response.json();
+          console.log('Resposta da API (metas):', resultado);
+
+          if (!response.ok) {
+            console.error('Erro na resposta (metas):', resultado);
+            throw new Error(resultado.message || `Erro ao atualizar meta de ${cluster} na coluna ${coluna}`);
+          }
+        }
+      }
+
+      // Atualizar estado local
+      const novasMetas = metasClusters.map(meta => {
+        const alteracoesDoCluster = alteracoesMetas.get(meta.cluster);
+        if (!alteracoesDoCluster) return meta;
+
+        return {
+          ...meta,
+          vvr: alteracoesDoCluster.get('VVR') || meta.vvr,
+          percentualAtigimentoMac: alteracoesDoCluster.get('% ATIGIMENTO MAC') || meta.percentualAtigimentoMac,
+          percentualEndividamento: alteracoesDoCluster.get('% ENDIVIDAMENTO') || meta.percentualEndividamento,
+          nps: alteracoesDoCluster.get('NPS') || meta.nps,
+          percentualMcEntrega: alteracoesDoCluster.get('% MC ENTREGA') || meta.percentualMcEntrega,
+          enps: alteracoesDoCluster.get('E-NPS') || meta.enps,
+          conformidade: alteracoesDoCluster.get('CONFORMIDADE') || meta.conformidade,
+        };
+      });
+      
+      setMetasClusters(novasMetas);
+      setAlteracoesMetas(new Map());
+      
+      setMensagemMetas({ tipo: 'success', texto: `${totalAlteracoes} meta(s) atualizada(s) com sucesso!` });
+    } catch (error: any) {
+      console.error('Erro ao salvar metas:', error);
+      setMensagemMetas({ tipo: 'error', texto: error.message || 'Erro ao salvar alterações de metas' });
+    } finally {
+      setSavingMetas(false);
     }
   };
 
@@ -1480,6 +1704,324 @@ export default function ParametrosPage() {
                     }}
                   >
                     {savingPesos ? 'Salvando...' : 'Salvar Alterações'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* SEÇÃO DE GERENCIAMENTO DE METAS POR CLUSTER */}
+          <h1 
+            className="text-3xl font-bold mb-6 mt-12" 
+            style={{ 
+              color: '#adb5bd', 
+              fontFamily: 'Poppins, sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              borderBottom: '2px solid #FF6600',
+              paddingBottom: '12px'
+            }}
+          >
+            Gerenciamento de Metas por Cluster
+          </h1>
+
+          {/* Mensagem de feedback - Metas */}
+          {mensagemMetas && (
+            <div style={{
+              padding: '12px 16px',
+              marginBottom: '20px',
+              borderRadius: '8px',
+              backgroundColor: mensagemMetas.tipo === 'success' ? '#22c55e20' : '#ef444420',
+              border: `1px solid ${mensagemMetas.tipo === 'success' ? '#22c55e' : '#ef4444'}`,
+              color: mensagemMetas.tipo === 'success' ? '#22c55e' : '#ef4444',
+              fontFamily: 'Poppins, sans-serif'
+            }}>
+              {mensagemMetas.texto}
+            </div>
+          )}
+
+          <Card>
+            {loadingMetas ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto" style={{ borderColor: '#FF6600' }}></div>
+                <p className="mt-4" style={{ color: '#adb5bd' }}>Carregando dados...</p>
+              </div>
+            ) : (
+              <div>
+                {/* Cabeçalho da tabela */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '2fr repeat(7, 1fr)',
+                  gap: '12px',
+                  padding: '12px 16px',
+                  backgroundColor: '#2a2f36',
+                  borderRadius: '8px 8px 0 0',
+                  fontWeight: 600,
+                  color: '#FF6600',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontSize: '0.85rem'
+                }}>
+                  <div>CLUSTER</div>
+                  <div style={{ textAlign: 'center' }}>VVR</div>
+                  <div style={{ textAlign: 'center' }}>% ATINGIMENTO MAC</div>
+                  <div style={{ textAlign: 'center' }}>% ENDIVIDAMENTO</div>
+                  <div style={{ textAlign: 'center' }}>NPS</div>
+                  <div style={{ textAlign: 'center' }}>% MC ENTREGA</div>
+                  <div style={{ textAlign: 'center' }}>E-NPS</div>
+                  <div style={{ textAlign: 'center' }}>CONFORMIDADE</div>
+                </div>
+
+                {/* Lista de metas */}
+                <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                  {(() => {
+                    console.log('🎨 RENDERIZANDO lista de metas. Length:', metasClusters.length);
+                    console.log('🎨 metasClusters:', metasClusters);
+                    return null;
+                  })()}
+                  {metasClusters.length === 0 ? (
+                    <div style={{
+                      padding: '40px',
+                      textAlign: 'center',
+                      color: '#adb5bd',
+                      fontFamily: 'Poppins, sans-serif'
+                    }}>
+                      Nenhum dado disponível
+                    </div>
+                  ) : (
+                    metasClusters.map((meta, index) => {
+                      const alteracoesDaMeta = alteracoesMetas.get(meta.cluster);
+                      const foiAlterado = alteracoesDaMeta && alteracoesDaMeta.size > 0;
+
+                      const vvrAtual = alteracoesDaMeta?.get('VVR') || meta.vvr;
+                      const macAtual = alteracoesDaMeta?.get('% ATIGIMENTO MAC') || meta.percentualAtigimentoMac;
+                      const endivAtual = alteracoesDaMeta?.get('% ENDIVIDAMENTO') || meta.percentualEndividamento;
+                      const npsAtual = alteracoesDaMeta?.get('NPS') || meta.nps;
+                      const mcAtual = alteracoesDaMeta?.get('% MC ENTREGA') || meta.percentualMcEntrega;
+                      const enpsAtual = alteracoesDaMeta?.get('E-NPS') || meta.enps;
+                      const confAtual = alteracoesDaMeta?.get('CONFORMIDADE') || meta.conformidade;
+
+                      return (
+                        <div 
+                          key={meta.cluster}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '2fr repeat(7, 1fr)',
+                            gap: '12px',
+                            padding: '12px 16px',
+                            borderBottom: '1px solid #343A40',
+                            backgroundColor: foiAlterado 
+                              ? '#2a2f3680' 
+                              : index % 2 === 0 
+                                ? '#2a2f36' 
+                                : '#23272d',
+                            fontFamily: 'Poppins, sans-serif',
+                            transition: 'background-color 0.2s',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <div style={{ 
+                            color: '#F8F9FA',
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontWeight: foiAlterado ? 600 : 400
+                          }}>
+                            {foiAlterado && <span style={{ color: '#FF6600', marginRight: '8px' }}>●</span>}
+                            {meta.cluster}
+                          </div>
+                          
+                          {/* Input VVR */}
+                          <div>
+                            <input
+                              type="text"
+                              value={vvrAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, 'VVR', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('VVR') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input % ATIGIMENTO MAC */}
+                          <div>
+                            <input
+                              type="text"
+                              value={macAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, '% ATIGIMENTO MAC', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('% ATIGIMENTO MAC') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input % ENDIVIDAMENTO */}
+                          <div>
+                            <input
+                              type="text"
+                              value={endivAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, '% ENDIVIDAMENTO', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('% ENDIVIDAMENTO') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input NPS */}
+                          <div>
+                            <input
+                              type="text"
+                              value={npsAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, 'NPS', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('NPS') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input % MC ENTREGA */}
+                          <div>
+                            <input
+                              type="text"
+                              value={mcAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, '% MC ENTREGA', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('% MC ENTREGA') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input E-NPS */}
+                          <div>
+                            <input
+                              type="text"
+                              value={enpsAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, 'E-NPS', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('E-NPS') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input CONFORMIDADE */}
+                          <div>
+                            <input
+                              type="text"
+                              value={confAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, 'CONFORMIDADE', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('CONFORMIDADE') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Botão de salvar */}
+                <div style={{ 
+                  padding: '16px',
+                  borderTop: '2px solid #343A40',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div style={{ color: '#adb5bd', fontSize: '0.9rem', fontFamily: 'Poppins, sans-serif' }}>
+                    {alteracoesMetas.size > 0 ? (
+                      <span style={{ color: '#FF6600', fontWeight: 600 }}>
+                        {Array.from(alteracoesMetas.values()).reduce((acc, m) => acc + m.size, 0)} alteração(ões) pendente(s)
+                      </span>
+                    ) : (
+                      'Nenhuma alteração pendente'
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={salvarAlteracoesMetas}
+                    disabled={savingMetas || alteracoesMetas.size === 0}
+                    style={{
+                      padding: '10px 24px',
+                      background: alteracoesMetas.size > 0 && !savingMetas
+                        ? 'linear-gradient(to bottom, #22c55e 0%, #16a34a 50%, #15803d 100%)'
+                        : 'linear-gradient(to bottom, #4a5563 0%, #3a4553 50%, #2a3543 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      cursor: alteracoesMetas.size > 0 && !savingMetas ? 'pointer' : 'not-allowed',
+                      fontFamily: 'Poppins, sans-serif',
+                      opacity: savingMetas || alteracoesMetas.size === 0 ? 0.6 : 1,
+                      boxShadow: alteracoesMetas.size > 0 && !savingMetas
+                        ? '0 4px 12px rgba(34, 197, 94, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                        : 'none',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {savingMetas ? 'Salvando...' : 'Salvar Alterações'}
                   </button>
                 </div>
               </div>
