@@ -503,12 +503,28 @@ export default function HomePage() {
         <Header />
 
         {/* Conteúdo Principal */}
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-0">
           {/* Gráfico de Pontuação */}
           {itemSelecionado ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Card do Gráfico */}
-            <Card titulo="Pontuação Total">
+            <Card>
+              <h3 
+                className="card-title" 
+                style={{
+                  color: '#adb5bd',
+                  fontSize: '1.2rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  marginBottom: '16px',
+                  paddingBottom: '8px',
+                  borderBottom: '1px solid #555',
+                  fontFamily: 'Poppins, sans-serif'
+                }}
+              >
+                PONTUAÇÃO TOTAL <span style={{ color: '#FF6600' }}>({filtroUnidade})</span>
+              </h3>
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
                   <defs>
