@@ -3,6 +3,7 @@
  */
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/router';
 
 interface SidebarProps {
   ondas: string[];
@@ -18,6 +19,7 @@ interface SidebarProps {
   onClusterChange: (cluster: string) => void;
   onConsultorChange: (consultor: string) => void;
   onCollapseChange: (collapsed: boolean) => void;
+  currentPage?: string;
 }
 
 export default function Sidebar({
@@ -33,8 +35,10 @@ export default function Sidebar({
   onUnidadeChange,
   onClusterChange,
   onConsultorChange,
-  onCollapseChange
+  onCollapseChange,
+  currentPage = 'resultados'
 }: SidebarProps) {
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchUnidade, setSearchUnidade] = useState('');
   const [isUnidadeDropdownOpen, setIsUnidadeDropdownOpen] = useState(false);
@@ -139,24 +143,129 @@ export default function Sidebar({
       {/* Conteúdo da Sidebar */}
       {!isCollapsed && (
         <div style={{ padding: '20px', paddingTop: '70px', flex: 1 }}>
-          {/* Título */}
-          <div style={{ 
-            marginBottom: '30px',
-            paddingBottom: '15px',
-            borderBottom: '2px solid #FF6600'
-          }}>
-            <h3 style={{ 
-              color: '#FF6600',
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              margin: 0,
-              fontFamily: 'Poppins, sans-serif'
-            }}>
-              FILTROS
-            </h3>
+          {/* Botões de Navegação */}
+          <div style={{ marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button
+              onClick={() => router.push('/')}
+              style={{
+                padding: '12px 16px',
+                background: currentPage === 'resultados' 
+                  ? 'linear-gradient(to bottom, #FF7A33 0%, #FF6600 50%, #E55A00 100%)'
+                  : 'linear-gradient(to bottom, #5a6573 0%, #4a5563 50%, #3a4553 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'Poppins, sans-serif',
+                transition: 'all 0.2s',
+                textAlign: 'left',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: currentPage === 'resultados'
+                  ? '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3)'
+                  : '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                if (currentPage !== 'resultados') {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentPage !== 'resultados') {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.transform = 'translateY(2px)';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3)';
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.transform = currentPage === 'resultados' ? 'translateY(0)' : 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = currentPage === 'resultados'
+                  ? '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3)'
+                  : '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+              }}
+            >
+              <span style={{ fontSize: '1.1rem' }}>📊</span>
+              Resultados
+            </button>
+
+            <button
+              onClick={() => router.push('/parametros')}
+              style={{
+                padding: '12px 16px',
+                background: currentPage === 'parametros' 
+                  ? 'linear-gradient(to bottom, #FF7A33 0%, #FF6600 50%, #E55A00 100%)'
+                  : 'linear-gradient(to bottom, #5a6573 0%, #4a5563 50%, #3a4553 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'Poppins, sans-serif',
+                transition: 'all 0.2s',
+                textAlign: 'left',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: currentPage === 'parametros'
+                  ? '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3)'
+                  : '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                if (currentPage !== 'parametros') {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentPage !== 'parametros') {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.transform = 'translateY(2px)';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3)';
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.transform = currentPage === 'parametros' ? 'translateY(0)' : 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = currentPage === 'parametros'
+                  ? '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3)'
+                  : '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+              }}
+            >
+              <span style={{ fontSize: '1.1rem' }}>⚙️</span>
+              Gerenciamento de Parâmetros
+            </button>
           </div>
 
-          {/* Filtro de Onda */}
+          {/* Título e Filtros - apenas na página de resultados */}
+          {currentPage === 'resultados' && (
+            <>
+              <div style={{ 
+                marginBottom: '30px',
+                paddingBottom: '15px',
+                borderBottom: '2px solid #FF6600'
+              }}>
+                <h3 style={{ 
+                  color: '#FF6600',
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  margin: 0,
+                  fontFamily: 'Poppins, sans-serif'
+                }}>
+                  FILTROS
+                </h3>
+              </div>
+
+              {/* Filtro de Onda */}
           <div style={{ marginBottom: '25px' }}>
             <label
               style={{
@@ -464,6 +573,8 @@ export default function Sidebar({
               )}
             </div>
           </div>
+            </>
+          )}
         </div>
       )}
     </div>

@@ -491,6 +491,7 @@ export default function HomePage() {
         onClusterChange={setFiltroCluster}
         onConsultorChange={setFiltroConsultor}
         onCollapseChange={setSidebarCollapsed}
+        currentPage="resultados"
       />
 
       {/* Área de conteúdo que se ajusta à sidebar */}
