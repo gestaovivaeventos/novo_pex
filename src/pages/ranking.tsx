@@ -241,22 +241,6 @@ export default function RankingPage() {
 
         {/* Conteúdo Principal */}
         <main className="container mx-auto px-4 py-8">
-          <h1 
-            className="text-3xl font-bold mb-8" 
-            style={{ 
-              color: '#adb5bd', 
-              fontFamily: 'Poppins, sans-serif',
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              borderBottom: '2px solid #FF6600',
-              paddingBottom: '12px'
-            }}
-          >
-            Ranking Geral
-            {filtroCluster && <span style={{ color: '#FF6600' }}> - {filtroCluster}</span>}
-            {filtroConsultor && <span style={{ color: '#FF6600' }}> - {filtroConsultor}</span>}
-          </h1>
-
           {/* Pódio Top 3 */}
           {rankingFiltrado.length >= 3 && (
             <div style={{ 
@@ -578,14 +562,16 @@ export default function RankingPage() {
             </div>
           )}
 
-          {/* Tabela de Ranking Completo */}
+          {/* Tabela de Ranking Top 10 */}
           <h2 
             className="text-2xl font-bold mb-4" 
             style={{ 
               color: '#adb5bd', 
               fontFamily: 'Poppins, sans-serif',
               textTransform: 'uppercase',
-              letterSpacing: '0.05em'
+              letterSpacing: '0.05em',
+              borderBottom: '2px solid #FF6600',
+              paddingBottom: '12px'
             }}
           >
             Ranking Top 10 Performance Rede Viva
@@ -713,6 +699,453 @@ export default function RankingPage() {
               </table>
             </div>
           </Card>
+
+          {/* Top 3 por Cluster */}
+          <h2 
+            className="text-2xl font-bold mb-6 mt-12" 
+            style={{ 
+              color: '#adb5bd', 
+              fontFamily: 'Poppins, sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              borderBottom: '2px solid #FF6600',
+              paddingBottom: '12px'
+            }}
+          >
+            Top 3 Por Cluster
+          </h2>
+
+          {/* Grid com 4 tabelas */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '24px',
+            marginBottom: '40px'
+          }}>
+            {/* CALOURO INICIANTE */}
+            <Card>
+              <h3 style={{
+                color: '#adb5bd',
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                fontFamily: 'Poppins, sans-serif',
+                marginBottom: '16px',
+                textTransform: 'uppercase',
+                textAlign: 'center',
+                borderBottom: '1px solid #FF6600',
+                paddingBottom: '8px'
+              }}>
+                Calouro Iniciante
+              </h3>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #FF6600' }}>
+                      <th style={{ 
+                        padding: '10px 8px', 
+                        textAlign: 'center', 
+                        color: '#FF6600',
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Pos.
+                      </th>
+                      <th style={{ 
+                        padding: '10px 8px', 
+                        textAlign: 'center', 
+                        color: '#FF6600',
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Unidade
+                      </th>
+                      <th style={{ 
+                        padding: '10px 8px', 
+                        textAlign: 'center', 
+                        color: '#FF6600',
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Média
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rankingGeral
+                      .filter(item => item.cluster === 'CALOURO INICIANTE')
+                      .slice(0, 3)
+                      .map((item, index) => (
+                        <tr 
+                          key={item.unidade}
+                          style={{ 
+                            borderBottom: '1px solid #343A40',
+                            backgroundColor: index % 2 === 0 ? '#2a2f36' : '#23272d'
+                          }}
+                        >
+                          <td style={{ 
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: '#F8F9FA',
+                            fontFamily: 'Poppins, sans-serif',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                          }}>
+                            {index === 0 && '🥇 '}
+                            {index === 1 && '🥈 '}
+                            {index === 2 && '🥉 '}
+                            {index + 1}º
+                          </td>
+                          <td style={{ 
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: '#F8F9FA',
+                            fontFamily: 'Poppins, sans-serif',
+                            fontSize: '0.9rem',
+                            fontWeight: index === 0 ? 600 : 400
+                          }}>
+                            {item.unidade}
+                          </td>
+                          <td style={{ 
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: '#FF6600',
+                            fontFamily: 'Poppins, sans-serif',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                          }}>
+                            {item.media.toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* CALOURO */}
+            <Card>
+              <h3 style={{
+                color: '#adb5bd',
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                fontFamily: 'Poppins, sans-serif',
+                marginBottom: '16px',
+                textTransform: 'uppercase',
+                textAlign: 'center',
+                borderBottom: '1px solid #FF6600',
+                paddingBottom: '8px'
+              }}>
+                Calouro
+              </h3>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #FF6600' }}>
+                      <th style={{ 
+                        padding: '10px 8px', 
+                        textAlign: 'center', 
+                        color: '#FF6600',
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Pos.
+                      </th>
+                      <th style={{ 
+                        padding: '10px 8px', 
+                        textAlign: 'center', 
+                        color: '#FF6600',
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Unidade
+                      </th>
+                      <th style={{ 
+                        padding: '10px 8px', 
+                        textAlign: 'center', 
+                        color: '#FF6600',
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Média
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rankingGeral
+                      .filter(item => item.cluster === 'CALOURO')
+                      .slice(0, 3)
+                      .map((item, index) => (
+                        <tr 
+                          key={item.unidade}
+                          style={{ 
+                            borderBottom: '1px solid #343A40',
+                            backgroundColor: index % 2 === 0 ? '#2a2f36' : '#23272d'
+                          }}
+                        >
+                          <td style={{ 
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: '#F8F9FA',
+                            fontFamily: 'Poppins, sans-serif',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                          }}>
+                            {index === 0 && '🥇 '}
+                            {index === 1 && '🥈 '}
+                            {index === 2 && '🥉 '}
+                            {index + 1}º
+                          </td>
+                          <td style={{ 
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: '#F8F9FA',
+                            fontFamily: 'Poppins, sans-serif',
+                            fontSize: '0.9rem',
+                            fontWeight: index === 0 ? 600 : 400
+                          }}>
+                            {item.unidade}
+                          </td>
+                          <td style={{ 
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: '#FF6600',
+                            fontFamily: 'Poppins, sans-serif',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                          }}>
+                            {item.media.toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* GRADUADO */}
+            <Card>
+              <h3 style={{
+                color: '#adb5bd',
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                fontFamily: 'Poppins, sans-serif',
+                marginBottom: '16px',
+                textTransform: 'uppercase',
+                textAlign: 'center',
+                borderBottom: '1px solid #FF6600',
+                paddingBottom: '8px'
+              }}>
+                Graduado
+              </h3>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #FF6600' }}>
+                      <th style={{ 
+                        padding: '10px 8px', 
+                        textAlign: 'center', 
+                        color: '#FF6600',
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Pos.
+                      </th>
+                      <th style={{ 
+                        padding: '10px 8px', 
+                        textAlign: 'center', 
+                        color: '#FF6600',
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Unidade
+                      </th>
+                      <th style={{ 
+                        padding: '10px 8px', 
+                        textAlign: 'center', 
+                        color: '#FF6600',
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Média
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rankingGeral
+                      .filter(item => item.cluster === 'GRADUADO')
+                      .slice(0, 3)
+                      .map((item, index) => (
+                        <tr 
+                          key={item.unidade}
+                          style={{ 
+                            borderBottom: '1px solid #343A40',
+                            backgroundColor: index % 2 === 0 ? '#2a2f36' : '#23272d'
+                          }}
+                        >
+                          <td style={{ 
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: '#F8F9FA',
+                            fontFamily: 'Poppins, sans-serif',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                          }}>
+                            {index === 0 && '🥇 '}
+                            {index === 1 && '🥈 '}
+                            {index === 2 && '🥉 '}
+                            {index + 1}º
+                          </td>
+                          <td style={{ 
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: '#F8F9FA',
+                            fontFamily: 'Poppins, sans-serif',
+                            fontSize: '0.9rem',
+                            fontWeight: index === 0 ? 600 : 400
+                          }}>
+                            {item.unidade}
+                          </td>
+                          <td style={{ 
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: '#FF6600',
+                            fontFamily: 'Poppins, sans-serif',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                          }}>
+                            {item.media.toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* PÓS GRADUADO */}
+            <Card>
+              <h3 style={{
+                color: '#adb5bd',
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                fontFamily: 'Poppins, sans-serif',
+                marginBottom: '16px',
+                textTransform: 'uppercase',
+                textAlign: 'center',
+                borderBottom: '1px solid #FF6600',
+                paddingBottom: '8px'
+              }}>
+                Pós Graduado
+              </h3>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #FF6600' }}>
+                      <th style={{ 
+                        padding: '10px 8px', 
+                        textAlign: 'center', 
+                        color: '#FF6600',
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Pos.
+                      </th>
+                      <th style={{ 
+                        padding: '10px 8px', 
+                        textAlign: 'center', 
+                        color: '#FF6600',
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Unidade
+                      </th>
+                      <th style={{ 
+                        padding: '10px 8px', 
+                        textAlign: 'center', 
+                        color: '#FF6600',
+                        fontFamily: 'Poppins, sans-serif',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase'
+                      }}>
+                        Média
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rankingGeral
+                      .filter(item => item.cluster === 'PÓS GRADUADO')
+                      .slice(0, 3)
+                      .map((item, index) => (
+                        <tr 
+                          key={item.unidade}
+                          style={{ 
+                            borderBottom: '1px solid #343A40',
+                            backgroundColor: index % 2 === 0 ? '#2a2f36' : '#23272d'
+                          }}
+                        >
+                          <td style={{ 
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: '#F8F9FA',
+                            fontFamily: 'Poppins, sans-serif',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                          }}>
+                            {index === 0 && '🥇 '}
+                            {index === 1 && '🥈 '}
+                            {index === 2 && '🥉 '}
+                            {index + 1}º
+                          </td>
+                          <td style={{ 
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: '#F8F9FA',
+                            fontFamily: 'Poppins, sans-serif',
+                            fontSize: '0.9rem',
+                            fontWeight: index === 0 ? 600 : 400
+                          }}>
+                            {item.unidade}
+                          </td>
+                          <td style={{ 
+                            padding: '10px 8px',
+                            textAlign: 'center',
+                            color: '#FF6600',
+                            fontFamily: 'Poppins, sans-serif',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                          }}>
+                            {item.media.toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
         </main>
       </div>
     </div>
