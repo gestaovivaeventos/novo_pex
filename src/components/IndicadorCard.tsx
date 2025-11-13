@@ -40,7 +40,7 @@ export default function IndicadorCard({
       {/* Nota Geral (subtítulo) */}
       <p 
         className="text-xs mb-3"
-        style={{ color: '#adb5bd' }}
+        style={{ color: '#adb5bd', fontSize: '0.9rem' }}
       >
         {notaGeral}
       </p>

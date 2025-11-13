@@ -28,6 +28,9 @@ export default function HomePage() {
   // Nome dinâmico da coluna do consultor
   const [nomeColunaConsultor, setNomeColunaConsultor] = useState<string>('Consultor');
 
+  // Estado para armazenar pesos dos indicadores por quarter
+  const [pesos, setPesos] = useState<Map<string, Map<string, string>>>(new Map());
+
   // Lógica de Filtros usando useMemo para performance
   const listaQuarters = useMemo(() => {
     if (!dadosBrutos || dadosBrutos.length === 0) return [];
@@ -81,6 +84,48 @@ export default function HomePage() {
       }
     }
   }, [dadosBrutos]);
+
+  // Carregar pesos dos indicadores
+  React.useEffect(() => {
+    const carregarPesos = async () => {
+      try {
+        const response = await fetch('/api/pesos');
+        if (response.ok) {
+          const dados = await response.json();
+          // Processar dados dos pesos
+          // Primeira linha são headers: Indicador, Quarter 1, Quarter 2, Quarter 3, Quarter 4
+          const pesosMap = new Map<string, Map<string, string>>();
+          
+          if (dados.length > 1) {
+            // Pular header (primeira linha)
+            for (let i = 1; i < dados.length; i++) {
+              const row = dados[i];
+              const indicador = row[0]?.trim() || '';
+              const indicadorMap = new Map<string, string>();
+              
+              // Colunas: 0=Indicador, 1=Q1, 2=Q2, 3=Q3, 4=Q4
+              indicadorMap.set('1', row[1] || '');
+              indicadorMap.set('2', row[2] || '');
+              indicadorMap.set('3', row[3] || '');
+              indicadorMap.set('4', row[4] || '');
+              
+              pesosMap.set(indicador, indicadorMap);
+              
+              // Também adicionar variações comuns do nome
+              pesosMap.set(indicador.toLowerCase(), indicadorMap);
+              pesosMap.set(indicador.toUpperCase(), indicadorMap);
+            }
+          }
+          
+          setPesos(pesosMap);
+        }
+      } catch (error) {
+        // Silenciosamente ignorar erro se não conseguir carregar pesos
+      }
+    };
+
+    carregarPesos();
+  }, []);
 
   const listaUnidadesFiltradas = useMemo(() => {
     if (!dadosBrutos || dadosBrutos.length === 0) return [];
@@ -320,43 +365,50 @@ export default function HomePage() {
         codigo: 'VVR', 
         coluna: 'VVR',
         titulo: 'VVR', 
-        notaGeral: 'VALOR DE VENDAS REALIZADAS'
+        notaGeral: 'VALOR DE VENDAS REALIZADAS',
+        pesoNome: 'VVR'
       },
       { 
         codigo: 'MAC', 
         coluna: 'MAC',
         titulo: 'MAC', 
-        notaGeral: 'META DE ATINGIMENTO DE CONTRATO'
+        notaGeral: 'META DE ATINGIMENTO DE CONTRATO',
+        pesoNome: 'MAC'
       },
       { 
         codigo: 'Endividamento', 
         coluna: 'Endividamento',
         titulo: 'ENDIVIDAMENTO', 
-        notaGeral: 'PERCENTUAL DE ENDIVIDAMENTO'
+        notaGeral: 'PERCENTUAL DE ENDIVIDAMENTO',
+        pesoNome: 'ENDIVIDAMENTO'
       },
       { 
         codigo: 'NPS', 
         coluna: 'NPS',
         titulo: 'NPS SEMESTRAL', 
-        notaGeral: 'NET PROMOTER SCORE'
+        notaGeral: 'NET PROMOTER SCORE',
+        pesoNome: 'NPS'
       },
       { 
         codigo: 'MC_PERCENTUAL', 
         coluna: 'MC %\n(entrega)',
         titulo: 'MC % (ENTREGA)', 
-        notaGeral: 'MARGEM DE CONTRIBUIÇÃO DA FRANQUIA'
+        notaGeral: 'MARGEM DE CONTRIBUIÇÃO DA FRANQUIA',
+        pesoNome: '% MC (ENTREGA)'
       },
       { 
         codigo: 'ENPS', 
         coluna: 'Satisfação do colaborador - e-NPS',
         titulo: 'SATISF. COLABORADOR - e-NPS', 
-        notaGeral: 'NET PROMOTER SCORE'
+        notaGeral: 'NET PROMOTER SCORE',
+        pesoNome: 'E-NPS'
       },
       { 
         codigo: 'CONFORMIDADES', 
         coluna: '*Conformidades',
         titulo: 'CONFORMIDADES', 
-        notaGeral: 'NÍVEL DE CONFORMIDADE'
+        notaGeral: 'NÍVEL DE CONFORMIDADE',
+        pesoNome: '% CONFORMIDADES'
       }
     ];
 
@@ -390,16 +442,30 @@ export default function HomePage() {
         item => parseValor(item[ind.coluna]) === melhorCluster
       )?.nm_unidade;
 
+      // Buscar peso do indicador para o quarter selecionado
+      const pesoDictionary = pesos.get(ind.pesoNome) || 
+                             pesos.get(ind.pesoNome?.toLowerCase()) || 
+                             pesos.get(ind.pesoNome?.toUpperCase()) ||
+                             pesos.get(ind.codigo) || 
+                             pesos.get(ind.codigo.toLowerCase()) || 
+                             pesos.get(ind.codigo.toUpperCase()) ||
+                             pesos.get(ind.titulo) ||
+                             pesos.get(ind.titulo.toLowerCase()) ||
+                             pesos.get(ind.titulo.toUpperCase());
+      const pesoValue = pesoDictionary ? pesoDictionary.get(filtroQuarter) : '';
+      const notaComPeso = pesoValue ? `Peso: ${pesoValue}` : ind.notaGeral;
+
       return {
         ...ind,
         pontuacao: pontuacaoUnidade,
         melhorPontuacaoRede: melhorRede,
         melhorPontuacaoCluster: melhorCluster,
         unidadeMelhorRede,
-        unidadeMelhorCluster
+        unidadeMelhorCluster,
+        notaGeral: notaComPeso
       };
     });
-  }, [itemSelecionado, dadosBrutos, filtroQuarter]);
+  }, [itemSelecionado, dadosBrutos, filtroQuarter, pesos]);
 
   // Calcular Pontuação Bônus (sem comparativos)
   const pontuacaoBonus = useMemo(() => {
