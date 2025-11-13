@@ -146,6 +146,56 @@ export default function Sidebar({
           {/* Botões de Navegação */}
           <div style={{ marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <button
+              onClick={() => router.push('/ranking')}
+              style={{
+                padding: '12px 16px',
+                background: currentPage === 'ranking' 
+                  ? 'linear-gradient(to bottom, #FF7A33 0%, #FF6600 50%, #E55A00 100%)'
+                  : 'linear-gradient(to bottom, #5a6573 0%, #4a5563 50%, #3a4553 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'Poppins, sans-serif',
+                transition: 'all 0.2s',
+                textAlign: 'left',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: currentPage === 'ranking'
+                  ? '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3)'
+                  : '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                if (currentPage !== 'ranking') {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentPage !== 'ranking') {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.transform = 'translateY(2px)';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3)';
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.transform = currentPage === 'ranking' ? 'translateY(0)' : 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = currentPage === 'ranking'
+                  ? '0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3)'
+                  : '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+              }}
+            >
+              <span style={{ fontSize: '1.1rem' }}>🏆</span>
+              Ranking
+            </button>
+
+            <button
               onClick={() => router.push('/')}
               style={{
                 padding: '12px 16px',
