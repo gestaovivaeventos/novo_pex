@@ -1375,6 +1375,324 @@ export default function ParametrosPage() {
             )}
           </Card>
 
+          {/* SEÇÃO DE GERENCIAMENTO DE METAS POR CLUSTER */}
+          <h1 
+            className="text-3xl font-bold mb-6 mt-12" 
+            style={{ 
+              color: '#adb5bd', 
+              fontFamily: 'Poppins, sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              borderBottom: '2px solid #FF6600',
+              paddingBottom: '12px'
+            }}
+          >
+            Gerenciamento de Metas por Cluster
+          </h1>
+
+          {/* Mensagem de feedback - Metas */}
+          {mensagemMetas && (
+            <div style={{
+              padding: '12px 16px',
+              marginBottom: '20px',
+              borderRadius: '8px',
+              backgroundColor: mensagemMetas.tipo === 'success' ? '#22c55e20' : '#ef444420',
+              border: `1px solid ${mensagemMetas.tipo === 'success' ? '#22c55e' : '#ef4444'}`,
+              color: mensagemMetas.tipo === 'success' ? '#22c55e' : '#ef4444',
+              fontFamily: 'Poppins, sans-serif'
+            }}>
+              {mensagemMetas.texto}
+            </div>
+          )}
+
+          <Card>
+            {loadingMetas ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto" style={{ borderColor: '#FF6600' }}></div>
+                <p className="mt-4" style={{ color: '#adb5bd' }}>Carregando dados...</p>
+              </div>
+            ) : (
+              <div>
+                {/* Cabeçalho da tabela */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '2fr repeat(7, 1fr)',
+                  gap: '12px',
+                  padding: '12px 16px',
+                  backgroundColor: '#2a2f36',
+                  borderRadius: '8px 8px 0 0',
+                  fontWeight: 600,
+                  color: '#FF6600',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontSize: '0.85rem'
+                }}>
+                  <div>CLUSTER</div>
+                  <div style={{ textAlign: 'center' }}>VVR</div>
+                  <div style={{ textAlign: 'center' }}>% ATINGIMENTO MAC</div>
+                  <div style={{ textAlign: 'center' }}>% ENDIVIDAMENTO</div>
+                  <div style={{ textAlign: 'center' }}>NPS</div>
+                  <div style={{ textAlign: 'center' }}>% MC ENTREGA</div>
+                  <div style={{ textAlign: 'center' }}>E-NPS</div>
+                  <div style={{ textAlign: 'center' }}>% CONFORMIDADES</div>
+                </div>
+
+                {/* Lista de metas */}
+                <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                  {(() => {
+                    console.log('🎨 RENDERIZANDO lista de metas. Length:', metasClusters.length);
+                    console.log('🎨 metasClusters:', metasClusters);
+                    return null;
+                  })()}
+                  {metasClusters.length === 0 ? (
+                    <div style={{
+                      padding: '40px',
+                      textAlign: 'center',
+                      color: '#adb5bd',
+                      fontFamily: 'Poppins, sans-serif'
+                    }}>
+                      Nenhum dado disponível
+                    </div>
+                  ) : (
+                    metasClusters.map((meta, index) => {
+                      const alteracoesDaMeta = alteracoesMetas.get(meta.cluster);
+                      const foiAlterado = alteracoesDaMeta && alteracoesDaMeta.size > 0;
+
+                      const vvrAtual = alteracoesDaMeta?.get('VVR') || meta.vvr;
+                      const macAtual = alteracoesDaMeta?.get('% ATIGIMENTO MAC') || meta.percentualAtigimentoMac;
+                      const endivAtual = alteracoesDaMeta?.get('% ENDIVIDAMENTO') || meta.percentualEndividamento;
+                      const npsAtual = alteracoesDaMeta?.get('NPS') || meta.nps;
+                      const mcAtual = alteracoesDaMeta?.get('% MC ENTREGA') || meta.percentualMcEntrega;
+                      const enpsAtual = alteracoesDaMeta?.get('E-NPS') || meta.enps;
+                      const confAtual = alteracoesDaMeta?.get('CONFORMIDADE') || meta.conformidade;
+
+                      return (
+                        <div 
+                          key={meta.cluster}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '2fr repeat(7, 1fr)',
+                            gap: '12px',
+                            padding: '12px 16px',
+                            borderBottom: '1px solid #343A40',
+                            backgroundColor: foiAlterado 
+                              ? '#2a2f3680' 
+                              : index % 2 === 0 
+                                ? '#2a2f36' 
+                                : '#23272d',
+                            fontFamily: 'Poppins, sans-serif',
+                            transition: 'background-color 0.2s',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <div style={{ 
+                            color: '#F8F9FA',
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontWeight: foiAlterado ? 600 : 400
+                          }}>
+                            {foiAlterado && <span style={{ color: '#FF6600', marginRight: '8px' }}>●</span>}
+                            {meta.cluster}
+                          </div>
+                          
+                          {/* Input VVR */}
+                          <div>
+                            <input
+                              type="text"
+                              value={vvrAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, 'VVR', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('VVR') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input % ATIGIMENTO MAC */}
+                          <div>
+                            <input
+                              type="text"
+                              value={macAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, '% ATIGIMENTO MAC', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('% ATIGIMENTO MAC') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input % ENDIVIDAMENTO */}
+                          <div>
+                            <input
+                              type="text"
+                              value={endivAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, '% ENDIVIDAMENTO', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('% ENDIVIDAMENTO') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input NPS */}
+                          <div>
+                            <input
+                              type="text"
+                              value={npsAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, 'NPS', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('NPS') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input % MC ENTREGA */}
+                          <div>
+                            <input
+                              type="text"
+                              value={mcAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, '% MC ENTREGA', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('% MC ENTREGA') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input E-NPS */}
+                          <div>
+                            <input
+                              type="text"
+                              value={enpsAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, 'E-NPS', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('E-NPS') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          {/* Input CONFORMIDADE */}
+                          <div>
+                            <input
+                              type="text"
+                              value={confAtual}
+                              onChange={(e) => handleMetaChange(meta.cluster, 'CONFORMIDADE', e.target.value)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#343A40',
+                                color: 'white',
+                                border: alteracoesDaMeta?.has('CONFORMIDADE') ? '2px solid #FF6600' : '1px solid #555',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Poppins, sans-serif',
+                                textAlign: 'center',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Botão de salvar */}
+                <div style={{ 
+                  padding: '16px',
+                  borderTop: '2px solid #343A40',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div style={{ color: '#adb5bd', fontSize: '0.9rem', fontFamily: 'Poppins, sans-serif' }}>
+                    {alteracoesMetas.size > 0 ? (
+                      <span style={{ color: '#FF6600', fontWeight: 600 }}>
+                        {Array.from(alteracoesMetas.values()).reduce((acc, m) => acc + m.size, 0)} alteração(ões) pendente(s)
+                      </span>
+                    ) : (
+                      'Nenhuma alteração pendente'
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={salvarAlteracoesMetas}
+                    disabled={savingMetas || alteracoesMetas.size === 0}
+                    style={{
+                      padding: '10px 24px',
+                      background: alteracoesMetas.size > 0 && !savingMetas
+                        ? 'linear-gradient(to bottom, #22c55e 0%, #16a34a 50%, #15803d 100%)'
+                        : 'linear-gradient(to bottom, #4a5563 0%, #3a4553 50%, #2a3543 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      cursor: alteracoesMetas.size > 0 && !savingMetas ? 'pointer' : 'not-allowed',
+                      fontFamily: 'Poppins, sans-serif',
+                      opacity: savingMetas || alteracoesMetas.size === 0 ? 0.6 : 1,
+                      boxShadow: alteracoesMetas.size > 0 && !savingMetas
+                        ? '0 4px 12px rgba(34, 197, 94, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                        : 'none',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {savingMetas ? 'Salvando...' : 'Salvar Alterações'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </Card>
+
           {/* SEÇÃO DE GERENCIAMENTO DE PESOS POR QUARTER */}
           <h1 
             className="text-3xl font-bold mb-6 mt-12" 
@@ -1704,324 +2022,6 @@ export default function ParametrosPage() {
                     }}
                   >
                     {savingPesos ? 'Salvando...' : 'Salvar Alterações'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </Card>
-
-          {/* SEÇÃO DE GERENCIAMENTO DE METAS POR CLUSTER */}
-          <h1 
-            className="text-3xl font-bold mb-6 mt-12" 
-            style={{ 
-              color: '#adb5bd', 
-              fontFamily: 'Poppins, sans-serif',
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              borderBottom: '2px solid #FF6600',
-              paddingBottom: '12px'
-            }}
-          >
-            Gerenciamento de Metas por Cluster
-          </h1>
-
-          {/* Mensagem de feedback - Metas */}
-          {mensagemMetas && (
-            <div style={{
-              padding: '12px 16px',
-              marginBottom: '20px',
-              borderRadius: '8px',
-              backgroundColor: mensagemMetas.tipo === 'success' ? '#22c55e20' : '#ef444420',
-              border: `1px solid ${mensagemMetas.tipo === 'success' ? '#22c55e' : '#ef4444'}`,
-              color: mensagemMetas.tipo === 'success' ? '#22c55e' : '#ef4444',
-              fontFamily: 'Poppins, sans-serif'
-            }}>
-              {mensagemMetas.texto}
-            </div>
-          )}
-
-          <Card>
-            {loadingMetas ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto" style={{ borderColor: '#FF6600' }}></div>
-                <p className="mt-4" style={{ color: '#adb5bd' }}>Carregando dados...</p>
-              </div>
-            ) : (
-              <div>
-                {/* Cabeçalho da tabela */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '2fr repeat(7, 1fr)',
-                  gap: '12px',
-                  padding: '12px 16px',
-                  backgroundColor: '#2a2f36',
-                  borderRadius: '8px 8px 0 0',
-                  fontWeight: 600,
-                  color: '#FF6600',
-                  fontFamily: 'Poppins, sans-serif',
-                  fontSize: '0.85rem'
-                }}>
-                  <div>CLUSTER</div>
-                  <div style={{ textAlign: 'center' }}>VVR</div>
-                  <div style={{ textAlign: 'center' }}>% ATINGIMENTO MAC</div>
-                  <div style={{ textAlign: 'center' }}>% ENDIVIDAMENTO</div>
-                  <div style={{ textAlign: 'center' }}>NPS</div>
-                  <div style={{ textAlign: 'center' }}>% MC ENTREGA</div>
-                  <div style={{ textAlign: 'center' }}>E-NPS</div>
-                  <div style={{ textAlign: 'center' }}>CONFORMIDADE</div>
-                </div>
-
-                {/* Lista de metas */}
-                <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                  {(() => {
-                    console.log('🎨 RENDERIZANDO lista de metas. Length:', metasClusters.length);
-                    console.log('🎨 metasClusters:', metasClusters);
-                    return null;
-                  })()}
-                  {metasClusters.length === 0 ? (
-                    <div style={{
-                      padding: '40px',
-                      textAlign: 'center',
-                      color: '#adb5bd',
-                      fontFamily: 'Poppins, sans-serif'
-                    }}>
-                      Nenhum dado disponível
-                    </div>
-                  ) : (
-                    metasClusters.map((meta, index) => {
-                      const alteracoesDaMeta = alteracoesMetas.get(meta.cluster);
-                      const foiAlterado = alteracoesDaMeta && alteracoesDaMeta.size > 0;
-
-                      const vvrAtual = alteracoesDaMeta?.get('VVR') || meta.vvr;
-                      const macAtual = alteracoesDaMeta?.get('% ATIGIMENTO MAC') || meta.percentualAtigimentoMac;
-                      const endivAtual = alteracoesDaMeta?.get('% ENDIVIDAMENTO') || meta.percentualEndividamento;
-                      const npsAtual = alteracoesDaMeta?.get('NPS') || meta.nps;
-                      const mcAtual = alteracoesDaMeta?.get('% MC ENTREGA') || meta.percentualMcEntrega;
-                      const enpsAtual = alteracoesDaMeta?.get('E-NPS') || meta.enps;
-                      const confAtual = alteracoesDaMeta?.get('CONFORMIDADE') || meta.conformidade;
-
-                      return (
-                        <div 
-                          key={meta.cluster}
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: '2fr repeat(7, 1fr)',
-                            gap: '12px',
-                            padding: '12px 16px',
-                            borderBottom: '1px solid #343A40',
-                            backgroundColor: foiAlterado 
-                              ? '#2a2f3680' 
-                              : index % 2 === 0 
-                                ? '#2a2f36' 
-                                : '#23272d',
-                            fontFamily: 'Poppins, sans-serif',
-                            transition: 'background-color 0.2s',
-                            alignItems: 'center'
-                          }}
-                        >
-                          <div style={{ 
-                            color: '#F8F9FA',
-                            display: 'flex',
-                            alignItems: 'center',
-                            fontWeight: foiAlterado ? 600 : 400
-                          }}>
-                            {foiAlterado && <span style={{ color: '#FF6600', marginRight: '8px' }}>●</span>}
-                            {meta.cluster}
-                          </div>
-                          
-                          {/* Input VVR */}
-                          <div>
-                            <input
-                              type="text"
-                              value={vvrAtual}
-                              onChange={(e) => handleMetaChange(meta.cluster, 'VVR', e.target.value)}
-                              style={{
-                                width: '100%',
-                                padding: '8px 12px',
-                                backgroundColor: '#343A40',
-                                color: 'white',
-                                border: alteracoesDaMeta?.has('VVR') ? '2px solid #FF6600' : '1px solid #555',
-                                borderRadius: '6px',
-                                fontSize: '0.85rem',
-                                fontFamily: 'Poppins, sans-serif',
-                                textAlign: 'center',
-                                outline: 'none'
-                              }}
-                            />
-                          </div>
-
-                          {/* Input % ATIGIMENTO MAC */}
-                          <div>
-                            <input
-                              type="text"
-                              value={macAtual}
-                              onChange={(e) => handleMetaChange(meta.cluster, '% ATIGIMENTO MAC', e.target.value)}
-                              style={{
-                                width: '100%',
-                                padding: '8px 12px',
-                                backgroundColor: '#343A40',
-                                color: 'white',
-                                border: alteracoesDaMeta?.has('% ATIGIMENTO MAC') ? '2px solid #FF6600' : '1px solid #555',
-                                borderRadius: '6px',
-                                fontSize: '0.85rem',
-                                fontFamily: 'Poppins, sans-serif',
-                                textAlign: 'center',
-                                outline: 'none'
-                              }}
-                            />
-                          </div>
-
-                          {/* Input % ENDIVIDAMENTO */}
-                          <div>
-                            <input
-                              type="text"
-                              value={endivAtual}
-                              onChange={(e) => handleMetaChange(meta.cluster, '% ENDIVIDAMENTO', e.target.value)}
-                              style={{
-                                width: '100%',
-                                padding: '8px 12px',
-                                backgroundColor: '#343A40',
-                                color: 'white',
-                                border: alteracoesDaMeta?.has('% ENDIVIDAMENTO') ? '2px solid #FF6600' : '1px solid #555',
-                                borderRadius: '6px',
-                                fontSize: '0.85rem',
-                                fontFamily: 'Poppins, sans-serif',
-                                textAlign: 'center',
-                                outline: 'none'
-                              }}
-                            />
-                          </div>
-
-                          {/* Input NPS */}
-                          <div>
-                            <input
-                              type="text"
-                              value={npsAtual}
-                              onChange={(e) => handleMetaChange(meta.cluster, 'NPS', e.target.value)}
-                              style={{
-                                width: '100%',
-                                padding: '8px 12px',
-                                backgroundColor: '#343A40',
-                                color: 'white',
-                                border: alteracoesDaMeta?.has('NPS') ? '2px solid #FF6600' : '1px solid #555',
-                                borderRadius: '6px',
-                                fontSize: '0.85rem',
-                                fontFamily: 'Poppins, sans-serif',
-                                textAlign: 'center',
-                                outline: 'none'
-                              }}
-                            />
-                          </div>
-
-                          {/* Input % MC ENTREGA */}
-                          <div>
-                            <input
-                              type="text"
-                              value={mcAtual}
-                              onChange={(e) => handleMetaChange(meta.cluster, '% MC ENTREGA', e.target.value)}
-                              style={{
-                                width: '100%',
-                                padding: '8px 12px',
-                                backgroundColor: '#343A40',
-                                color: 'white',
-                                border: alteracoesDaMeta?.has('% MC ENTREGA') ? '2px solid #FF6600' : '1px solid #555',
-                                borderRadius: '6px',
-                                fontSize: '0.85rem',
-                                fontFamily: 'Poppins, sans-serif',
-                                textAlign: 'center',
-                                outline: 'none'
-                              }}
-                            />
-                          </div>
-
-                          {/* Input E-NPS */}
-                          <div>
-                            <input
-                              type="text"
-                              value={enpsAtual}
-                              onChange={(e) => handleMetaChange(meta.cluster, 'E-NPS', e.target.value)}
-                              style={{
-                                width: '100%',
-                                padding: '8px 12px',
-                                backgroundColor: '#343A40',
-                                color: 'white',
-                                border: alteracoesDaMeta?.has('E-NPS') ? '2px solid #FF6600' : '1px solid #555',
-                                borderRadius: '6px',
-                                fontSize: '0.85rem',
-                                fontFamily: 'Poppins, sans-serif',
-                                textAlign: 'center',
-                                outline: 'none'
-                              }}
-                            />
-                          </div>
-
-                          {/* Input CONFORMIDADE */}
-                          <div>
-                            <input
-                              type="text"
-                              value={confAtual}
-                              onChange={(e) => handleMetaChange(meta.cluster, 'CONFORMIDADE', e.target.value)}
-                              style={{
-                                width: '100%',
-                                padding: '8px 12px',
-                                backgroundColor: '#343A40',
-                                color: 'white',
-                                border: alteracoesDaMeta?.has('CONFORMIDADE') ? '2px solid #FF6600' : '1px solid #555',
-                                borderRadius: '6px',
-                                fontSize: '0.85rem',
-                                fontFamily: 'Poppins, sans-serif',
-                                textAlign: 'center',
-                                outline: 'none'
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-
-                {/* Botão de salvar */}
-                <div style={{ 
-                  padding: '16px',
-                  borderTop: '2px solid #343A40',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <div style={{ color: '#adb5bd', fontSize: '0.9rem', fontFamily: 'Poppins, sans-serif' }}>
-                    {alteracoesMetas.size > 0 ? (
-                      <span style={{ color: '#FF6600', fontWeight: 600 }}>
-                        {Array.from(alteracoesMetas.values()).reduce((acc, m) => acc + m.size, 0)} alteração(ões) pendente(s)
-                      </span>
-                    ) : (
-                      'Nenhuma alteração pendente'
-                    )}
-                  </div>
-                  
-                  <button
-                    onClick={salvarAlteracoesMetas}
-                    disabled={savingMetas || alteracoesMetas.size === 0}
-                    style={{
-                      padding: '10px 24px',
-                      background: alteracoesMetas.size > 0 && !savingMetas
-                        ? 'linear-gradient(to bottom, #22c55e 0%, #16a34a 50%, #15803d 100%)'
-                        : 'linear-gradient(to bottom, #4a5563 0%, #3a4553 50%, #2a3543 100%)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '0.9rem',
-                      fontWeight: 600,
-                      cursor: alteracoesMetas.size > 0 && !savingMetas ? 'pointer' : 'not-allowed',
-                      fontFamily: 'Poppins, sans-serif',
-                      opacity: savingMetas || alteracoesMetas.size === 0 ? 0.6 : 1,
-                      boxShadow: alteracoesMetas.size > 0 && !savingMetas
-                        ? '0 4px 12px rgba(34, 197, 94, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                        : 'none',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    {savingMetas ? 'Salvando...' : 'Salvar Alterações'}
                   </button>
                 </div>
               </div>

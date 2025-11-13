@@ -148,39 +148,45 @@ export default async function handler(
 
       console.log('Atualizando range:', updateRange);
       console.log('Novo valor (recebido):', valor);
+      console.log('Coluna:', coluna);
 
       // Formatar valor baseado no tipo de coluna
       let valorFormatado: string;
+      let valueInputOption: 'RAW' | 'USER_ENTERED' = 'USER_ENTERED';
       
       if (coluna === 'VVR') {
         // Formatar como moeda: R$ 1.000.000,00
         const numero = parseFloat(String(valor).replace(',', '.'));
         
         // Separar parte inteira e decimal
-        const valorFixo = numero.toFixed(2); // Garante 2 casas decimais
+        const valorFixo = numero.toFixed(2);
         const [parteInteira, parteDecimal] = valorFixo.split('.');
         
         // Adicionar pontos de milhar
         const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         valorFormatado = `R$ ${parteInteiraFormatada},${parteDecimal}`;
-      } else if (coluna.includes('%')) {
-        // Formatar como percentual: 60,00%
+        valueInputOption = 'RAW'; // Enviar como texto formatado
+      } else if (coluna.includes('%') || coluna === 'CONFORMIDADE') {
+        // Para percentuais (incluindo CONFORMIDADE): enviar como "80%" e deixar o Sheets interpretar
         const numero = parseFloat(String(valor).replace(',', '.'));
-        const valorFixo = numero.toFixed(2); // Garante 2 casas decimais
+        const valorFixo = numero.toFixed(2);
         const valorComVirgula = valorFixo.replace('.', ',');
         valorFormatado = `${valorComVirgula}%`;
+        valueInputOption = 'USER_ENTERED'; // USER_ENTERED interpreta o % corretamente
       } else {
         // NPS e E-NPS: apenas número inteiro
         const numero = parseFloat(String(valor).replace(',', '.'));
         valorFormatado = String(Math.round(numero));
+        valueInputOption = 'USER_ENTERED';
       }
 
       console.log('Valor formatado para salvar:', valorFormatado);
+      console.log('valueInputOption:', valueInputOption);
 
       await sheets.spreadsheets.values.update({
         spreadsheetId: GOOGLE_SHEET_ID,
         range: updateRange,
-        valueInputOption: 'USER_ENTERED',
+        valueInputOption: valueInputOption,
         requestBody: {
           values: [[valorFormatado]],
         },
