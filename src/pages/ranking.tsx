@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import Head from 'next/head';
 import { useSheetsData } from '@/hooks/useSheetsData';
 import Card from '@/components/Card';
 import Header from '@/components/Header';
@@ -212,6 +213,10 @@ export default function RankingPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#212529' }}>
+      <Head>
+        <title>Ranking - PEX</title>
+        <meta name="description" content="Ranking de Performance - Programa de Excelência (PEX)" />
+      </Head>
       {/* Sidebar com Filtros */}
       <Sidebar
         quarters={listaQuarters}

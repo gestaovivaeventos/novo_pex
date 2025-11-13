@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import Head from 'next/head';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
 import Sidebar from '@/components/Sidebar';
@@ -952,6 +953,11 @@ export default function ParametrosPage() {
         transition: 'margin-left 0.3s ease',
         minHeight: '100vh'
       }}>
+        <Head>
+          <title>Gerenciamento de Parâmetros - PEX</title>
+          <meta name="description" content="Gerenciamento de Parâmetros - Programa de Excelência (PEX)" />
+        </Head>
+        
         <Header />
 
         <main className="container mx-auto px-4 py-4">

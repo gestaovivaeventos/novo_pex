@@ -196,7 +196,7 @@ export default function Sidebar({
             </button>
 
             <button
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/resultados')}
               style={{
                 padding: '12px 16px',
                 background: currentPage === 'resultados' 
