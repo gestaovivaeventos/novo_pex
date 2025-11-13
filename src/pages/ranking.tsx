@@ -261,22 +261,61 @@ export default function RankingPage() {
           {rankingFiltrado.length >= 3 && (
             <div style={{ 
               marginBottom: '40px',
-              padding: '40px 20px',
+              padding: '20px 20px',
               background: 'linear-gradient(135deg, #1a1d23 0%, #2a2f36 100%)',
               borderRadius: '12px',
               border: '2px solid #FF6600',
-              boxShadow: '0 8px 24px rgba(255, 102, 0, 0.15)'
+              boxShadow: '0 8px 24px rgba(255, 102, 0, 0.15)',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
+              {/* GIF decorativo no canto esquerdo */}
+              <div style={{
+                position: 'absolute',
+                bottom: '10px',
+                left: '10px',
+                width: '350px',
+                height: '350px',
+                backgroundImage: 'url(/globinho.gif)',
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                pointerEvents: 'none',
+                zIndex: 0
+              }} />
+
+              {/* GIF decorativo no canto direito */}
+              <div style={{
+                position: 'absolute',
+                bottom: '10px',
+                right: '10px',
+                width: '350px',
+                height: '350px',
+                backgroundImage: 'url(/globinho.gif)',
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                pointerEvents: 'none',
+                zIndex: 0
+              }} />
+
               <h2 style={{
                 textAlign: 'center',
                 color: '#FF6600',
                 fontSize: '1.5rem',
                 fontWeight: 700,
                 fontFamily: 'Orbitron, Poppins, sans-serif',
-                marginBottom: '40px',
+                marginBottom: '30px',
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
-                textShadow: '0 2px 8px rgba(255, 102, 0, 0.3)'
+                textShadow: '0 2px 8px rgba(255, 102, 0, 0.3)',
+                position: 'relative',
+                zIndex: 1,
+                background: 'linear-gradient(to right, transparent 0%, rgba(255, 102, 0, 0.15) 20%, rgba(255, 102, 0, 0.15) 80%, transparent 100%)',
+                padding: '16px 0',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 102, 0, 0.3)',
+                backdropFilter: 'blur(5px)'
               }}>
                 🏆 Top 3 Performance Rede Viva
               </h2>
@@ -286,7 +325,9 @@ export default function RankingPage() {
                 alignItems: 'flex-end',
                 justifyContent: 'center',
                 gap: '20px',
-                flexWrap: 'wrap'
+                flexWrap: 'wrap',
+                position: 'relative',
+                zIndex: 1
               }}>
                 {/* 2º Lugar */}
                 <div style={{
@@ -304,7 +345,7 @@ export default function RankingPage() {
                     boxShadow: '0 -4px 16px rgba(192, 192, 192, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.1)',
                     border: '2px solid #C0C0C0',
                     borderBottom: 'none',
-                    minHeight: '180px',
+                    minHeight: '160px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between'
@@ -466,48 +507,48 @@ export default function RankingPage() {
                 }}>
                   <div style={{
                     width: '180px',
-                    padding: '20px',
+                    padding: '18px',
                     background: 'linear-gradient(to bottom, #CD7F32 0%, #BD6F22 50%, #AD5F12 100%)',
                     borderRadius: '12px 12px 0 0',
                     textAlign: 'center',
                     boxShadow: '0 -4px 16px rgba(205, 127, 50, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.1)',
                     border: '2px solid #CD7F32',
                     borderBottom: 'none',
-                    minHeight: '160px',
+                    minHeight: '90px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between'
                   }}>
                     <div>
-                      <div style={{ fontSize: '3rem', marginBottom: '8px' }}>🥉</div>
+                      <div style={{ fontSize: '2.8rem', marginBottom: '6px' }}>🥉</div>
                       <div style={{
                         color: '#F8F9FA',
-                        fontSize: '1rem',
+                        fontSize: '0.95rem',
                         fontWeight: 700,
                         fontFamily: 'Poppins, sans-serif',
-                        marginBottom: '8px',
-                        lineHeight: '1.3'
+                        marginBottom: '6px',
+                        lineHeight: '1.2'
                       }}>
                         {rankingFiltrado[2].unidade}
                       </div>
                       <div style={{
                         color: '#FFD7B3',
-                        fontSize: '0.8rem',
+                        fontSize: '0.78rem',
                         fontFamily: 'Poppins, sans-serif',
-                        marginBottom: '4px'
+                        marginBottom: '3px'
                       }}>
                         {rankingFiltrado[2].cluster || '-'}
                       </div>
                     </div>
                     <div style={{
                       background: 'linear-gradient(to right, rgba(255, 215, 179, 0.1), rgba(255, 215, 179, 0.3), rgba(255, 215, 179, 0.1))',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      marginTop: '12px'
+                      padding: '9px',
+                      borderRadius: '7px',
+                      marginTop: '10px'
                     }}>
                       <div style={{
                         color: '#FFD7B3',
-                        fontSize: '1.4rem',
+                        fontSize: '1.3rem',
                         fontWeight: 700,
                         fontFamily: 'Orbitron, sans-serif'
                       }}>
@@ -517,13 +558,13 @@ export default function RankingPage() {
                   </div>
                   <div style={{
                     width: '180px',
-                    height: '45px',
+                    height: '32px',
                     background: 'linear-gradient(to bottom, #CD7F32 0%, #BD6F22 50%, #AD5F12 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 700,
-                    fontSize: '1.5rem',
+                    fontSize: '1.4rem',
                     color: '#1a1d23',
                     fontFamily: 'Orbitron, sans-serif',
                     boxShadow: '0 4px 12px rgba(205, 127, 50, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.2)',
@@ -547,7 +588,7 @@ export default function RankingPage() {
               letterSpacing: '0.05em'
             }}
           >
-            Ranking Completo
+            Ranking Top 10 Performance Rede Viva
           </h2>
 
           <Card>
@@ -613,7 +654,7 @@ export default function RankingPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rankingFiltrado.map((item, index) => (
+                  {rankingFiltrado.slice(0, 10).map((item, index) => (
                     <tr 
                       key={item.unidade}
                       style={{ 
