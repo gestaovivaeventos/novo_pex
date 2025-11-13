@@ -302,17 +302,8 @@ export default function Sidebar({
               <div style={{ 
                 marginBottom: '30px',
                 paddingBottom: '15px',
-                borderBottom: '2px solid #FF6600'
+                borderBottom: '2px solid #555'
               }}>
-                <h3 style={{ 
-                  color: '#FF6600',
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
-                  margin: 0,
-                  fontFamily: 'Poppins, sans-serif'
-                }}>
-                  FILTROS
-                </h3>
               </div>
 
               {/* Filtro de Quarter */}
