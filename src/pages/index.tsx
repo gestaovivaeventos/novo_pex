@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Página Principal - Dashboard PEX com Filtros
  * Exibe gráfico de pontuação por Quarter e Unidade
  */
@@ -424,6 +424,21 @@ export default function HomePage() {
     });
   }, [itemSelecionado, dadosBrutos, filtroQuarter]);
 
+  // Calcular Pontuação Bônus (sem comparativos)
+  const pontuacaoBonus = useMemo(() => {
+    if (!itemSelecionado) return 0;
+    
+    // Função auxiliar para converter valor para número
+    const parseValor = (valor: any): number => {
+      if (!valor) return 0;
+      const valorStr = valor.toString().replace(',', '.');
+      return parseFloat(valorStr) || 0;
+    };
+
+    // Coluna D: "Bonus"
+    return parseValor(itemSelecionado['Bonus']);
+  }, [itemSelecionado]);
+
   // Inicializar filtros quando os dados carregarem
   React.useEffect(() => {
     if (listaQuarters.length > 0 && !filtroQuarter) {
@@ -806,13 +821,10 @@ export default function HomePage() {
               Performance por Indicador <span style={{ color: '#FF6600' }}>({filtroQuarter === '1' ? '1º' : filtroQuarter === '2' ? '2º' : filtroQuarter === '3' ? '3º' : '4º'} Quarter)</span>
             </h2>
 
-            {/* Grid de 7 Cards de Indicadores */}
-            <div className="flex flex-wrap justify-center gap-4">
+            {/* Grid de 8 Cards de Indicadores (4 colunas em telas grandes) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {indicadores.map((indicador, index) => (
-                <div 
-                  key={index}
-                  className="w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] xl:w-[calc(25%-0.75rem)]"
-                >
+                <div key={index}>
                   <IndicadorCard
                     titulo={indicador.titulo}
                     notaGeral={indicador.notaGeral}
@@ -824,6 +836,66 @@ export default function HomePage() {
                   />
                 </div>
               ))}
+
+              {/* Card de Pontuação Bônus (sem comparativos) */}
+              <div>
+                <div 
+                  className="p-4 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
+                  style={{ backgroundColor: '#343A40' }}
+                >
+                  {/* Título */}
+                  <h3 
+                    className="text-sm font-bold mb-2 uppercase tracking-wide"
+                    style={{ color: '#F8F9FA' }}
+                  >
+                    PONTUAÇÃO BÔNUS
+                  </h3>
+
+                  {/* Nota Geral (invisível para manter alinhamento) */}
+                  <p 
+                    className="text-xs mb-3"
+                    style={{ color: 'transparent' }}
+                  >
+                    .
+                  </p>
+
+                  {/* Valor da Pontuação Bônus */}
+                  <div className="mb-3">
+                    <div className="flex items-baseline gap-2">
+                      <span 
+                        className="text-3xl font-bold"
+                        style={{ color: '#FF6600' }}
+                      >
+                        {pontuacaoBonus.toFixed(1)}
+                      </span>
+                      <span 
+                        className="text-xs"
+                        style={{ color: '#6c757d' }}
+                      >
+                        pontos
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Melhor Pontuação - Rede (invisível para manter altura) */}
+                  <div className="mb-2 pb-2" style={{ borderBottom: '1px solid transparent' }}>
+                    <div className="flex justify-between items-center" style={{ visibility: 'hidden' }}>
+                      <span className="text-xs uppercase tracking-wide">Melhor Pontuação - Rede</span>
+                      <span className="text-sm font-semibold">0.0</span>
+                    </div>
+                    <p className="text-xs mt-1" style={{ visibility: 'hidden' }}>Placeholder</p>
+                  </div>
+
+                  {/* Melhor Pontuação - Cluster (invisível para manter altura) */}
+                  <div>
+                    <div className="flex justify-between items-center" style={{ visibility: 'hidden' }}>
+                      <span className="text-xs uppercase tracking-wide">Melhor Pontuação - Cluster</span>
+                      <span className="text-sm font-semibold">0.0</span>
+                    </div>
+                    <p className="text-xs mt-1" style={{ visibility: 'hidden' }}>Placeholder</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
