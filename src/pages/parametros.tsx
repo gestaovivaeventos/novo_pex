@@ -38,6 +38,14 @@ interface MetaCluster {
   conformidade: string;
 }
 
+interface BonusUnidade {
+  unidade: string;
+  quarter1: string;
+  quarter2: string;
+  quarter3: string;
+  quarter4: string;
+}
+
 export default function ParametrosPage() {
   const { dados: dadosBrutos } = useSheetsData();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -80,6 +88,14 @@ export default function ParametrosPage() {
   const [alteracoesMetas, setAlteracoesMetas] = useState<Map<string, Map<string, string>>>(new Map());
   const [mensagemMetas, setMensagemMetas] = useState<{ tipo: 'success' | 'error'; texto: string } | null>(null);
   const [clustersDisponiveis, setClustersDisponiveis] = useState<string[]>([]);
+
+  // Estados para gerenciamento de bônus
+  const [loadingBonus, setLoadingBonus] = useState(true);
+  const [savingBonus, setSavingBonus] = useState(false);
+  const [bonusUnidades, setBonusUnidades] = useState<BonusUnidade[]>([]);
+  const [alteracoesBonus, setAlteracoesBonus] = useState<Map<string, Map<string, string>>>(new Map());
+  const [mensagemBonus, setMensagemBonus] = useState<{ tipo: 'success' | 'error'; texto: string } | null>(null);
+  const [pesquisaUnidadeBonus, setPesquisaUnidadeBonus] = useState<string>('');
 
   // Filtros dummy para a sidebar
   const [filtroQuarter, setFiltroQuarter] = useState<string>('');
@@ -393,6 +409,77 @@ export default function ParametrosPage() {
     };
 
     carregarDadosMetas();
+  }, []);
+
+  // Carregar dados de bônus
+  useEffect(() => {
+    const carregarDadosBonus = async () => {
+      try {
+        setLoadingBonus(true);
+        console.log('=== CARREGANDO DADOS DE BÔNUS ===');
+        
+        const response = await fetch('/api/bonus');
+        
+        if (!response.ok) {
+          throw new Error('Erro ao carregar dados de bônus');
+        }
+
+        const dados = await response.json();
+        console.log('Dados brutos recebidos:', dados);
+        
+        if (dados && dados.length > 1) {
+          // Coluna A = nm_unidade, Coluna D = Bonus, Coluna V = QUARTER
+          const headers = dados[0];
+          console.log('Headers:', headers);
+          
+          // Agrupar por unidade
+          const bonusPorUnidade = new Map<string, { [key: string]: string }>();
+          
+          for (let i = 1; i < dados.length; i++) {
+            const row = dados[i];
+            const unidade = row[0]; // Coluna A
+            const bonusAtual = row[3] || '0'; // Coluna D
+            const quarter = row[21]; // Coluna V
+            
+            if (!unidade || !quarter) continue;
+            
+            if (!bonusPorUnidade.has(unidade)) {
+              bonusPorUnidade.set(unidade, {
+                '1': '0',
+                '2': '0',
+                '3': '0',
+                '4': '0'
+              });
+            }
+            
+            const bonusDaUnidade = bonusPorUnidade.get(unidade)!;
+            bonusDaUnidade[quarter] = bonusAtual;
+          }
+          
+          // Converter para array
+          const bonusArray: BonusUnidade[] = Array.from(bonusPorUnidade.entries()).map(([unidade, quarters]) => ({
+            unidade,
+            quarter1: quarters['1'],
+            quarter2: quarters['2'],
+            quarter3: quarters['3'],
+            quarter4: quarters['4']
+          }));
+          
+          // Ordenar por unidade
+          bonusArray.sort((a, b) => a.unidade.localeCompare(b.unidade));
+          
+          console.log('Bônus processados:', bonusArray);
+          setBonusUnidades(bonusArray);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados de bônus:', error);
+        setMensagemBonus({ tipo: 'error', texto: 'Erro ao carregar dados de bônus da planilha' });
+      } finally {
+        setLoadingBonus(false);
+      }
+    };
+
+    carregarDadosBonus();
   }, []);
 
   // Atualizar consultor localmente
@@ -807,6 +894,98 @@ export default function ParametrosPage() {
       setMensagemMetas({ tipo: 'error', texto: error.message || 'Erro ao salvar alterações de metas' });
     } finally {
       setSavingMetas(false);
+    }
+  };
+
+  // Função para atualizar bônus localmente
+  const handleBonusChange = (unidade: string, quarter: string, valor: string) => {
+    // Validar que o valor está entre 0 e 3
+    const valorNumerico = parseFloat(valor);
+    if (!isNaN(valorNumerico) && (valorNumerico < 0 || valorNumerico > 3)) {
+      return; // Não permite valores fora do intervalo
+    }
+    
+    const novasAlteracoes = new Map(alteracoesBonus);
+    
+    if (!novasAlteracoes.has(unidade)) {
+      novasAlteracoes.set(unidade, new Map());
+    }
+    
+    novasAlteracoes.get(unidade)!.set(quarter, valor);
+    setAlteracoesBonus(novasAlteracoes);
+  };
+
+  // Salvar alterações de bônus
+  const salvarAlteracoesBonus = async () => {
+    if (alteracoesBonus.size === 0) {
+      setMensagemBonus({ tipo: 'error', texto: 'Nenhuma alteração para salvar' });
+      return;
+    }
+
+    try {
+      setSavingBonus(true);
+      setMensagemBonus(null);
+
+      // Contar total de alterações
+      let totalAlteracoes = 0;
+      alteracoesBonus.forEach(quarters => {
+        totalAlteracoes += quarters.size;
+      });
+
+      console.log('Salvando alterações de bônus:', alteracoesBonus);
+      
+      let contador = 0;
+      const alteracoesArray = Array.from(alteracoesBonus.entries());
+      for (let i = 0; i < alteracoesArray.length; i++) {
+        const [unidade, quarters] = alteracoesArray[i];
+        const quartersArray = Array.from(quarters.entries());
+        
+        for (let j = 0; j < quartersArray.length; j++) {
+          const [quarter, valor] = quartersArray[j];
+          contador++;
+          console.log(`Salvando bônus ${contador}/${totalAlteracoes}:`, { unidade, quarter, valor });
+          
+          const response = await fetch('/api/bonus', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ unidade, quarter, valor }),
+          });
+
+          const resultado = await response.json();
+          console.log('Resposta da API (bônus):', resultado);
+
+          if (!response.ok) {
+            console.error('Erro na resposta (bônus):', resultado);
+            throw new Error(resultado.message || `Erro ao atualizar bônus de ${unidade} no quarter ${quarter}`);
+          }
+        }
+      }
+
+      // Atualizar estado local
+      const novosBonus = bonusUnidades.map(bonus => {
+        const alteracoesDaUnidade = alteracoesBonus.get(bonus.unidade);
+        if (!alteracoesDaUnidade) return bonus;
+
+        return {
+          ...bonus,
+          quarter1: alteracoesDaUnidade.get('1') || bonus.quarter1,
+          quarter2: alteracoesDaUnidade.get('2') || bonus.quarter2,
+          quarter3: alteracoesDaUnidade.get('3') || bonus.quarter3,
+          quarter4: alteracoesDaUnidade.get('4') || bonus.quarter4,
+        };
+      });
+      
+      setBonusUnidades(novosBonus);
+      setAlteracoesBonus(new Map());
+      
+      setMensagemBonus({ tipo: 'success', texto: `${totalAlteracoes} bônus atualizado(s) com sucesso!` });
+    } catch (error: any) {
+      console.error('Erro ao salvar bônus:', error);
+      setMensagemBonus({ tipo: 'error', texto: error.message || 'Erro ao salvar alterações de bônus' });
+    } finally {
+      setSavingBonus(false);
     }
   };
 
@@ -2022,6 +2201,300 @@ export default function ParametrosPage() {
                     }}
                   >
                     {savingPesos ? 'Salvando...' : 'Salvar Alterações'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* SEÇÃO DE GERENCIAMENTO DE BÔNUS */}
+          <h1 
+            className="text-3xl font-bold mb-6 mt-12" 
+            style={{ 
+              color: '#adb5bd', 
+              fontFamily: 'Poppins, sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              borderBottom: '2px solid #FF6600',
+              paddingBottom: '12px'
+            }}
+          >
+            Gerenciamento de Bônus por Unidade
+          </h1>
+
+          {/* Mensagem de feedback - Bônus */}
+          {mensagemBonus && (
+            <div style={{
+              padding: '12px 16px',
+              marginBottom: '20px',
+              borderRadius: '8px',
+              backgroundColor: mensagemBonus.tipo === 'success' ? '#22c55e20' : '#ef444420',
+              border: `1px solid ${mensagemBonus.tipo === 'success' ? '#22c55e' : '#ef4444'}`,
+              color: mensagemBonus.tipo === 'success' ? '#22c55e' : '#ef4444',
+              fontFamily: 'Poppins, sans-serif'
+            }}>
+              {mensagemBonus.texto}
+            </div>
+          )}
+
+          <Card>
+            {loadingBonus ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto" style={{ borderColor: '#FF6600' }}></div>
+                <p className="mt-4" style={{ color: '#adb5bd' }}>Carregando dados...</p>
+              </div>
+            ) : (
+              <div>
+                {/* Barra de pesquisa */}
+                <div style={{ 
+                  marginBottom: '16px',
+                  display: 'flex',
+                  gap: '12px',
+                  alignItems: 'center'
+                }}>
+                  <input
+                    type="text"
+                    placeholder="🔍 Pesquisar unidade..."
+                    value={pesquisaUnidadeBonus}
+                    onChange={(e) => setPesquisaUnidadeBonus(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '10px 16px',
+                      backgroundColor: '#343A40',
+                      color: 'white',
+                      border: '1px solid #555',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      fontFamily: 'Poppins, sans-serif',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                {/* Cabeçalho da tabela */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
+                  gap: '16px',
+                  padding: '12px 16px',
+                  backgroundColor: '#2a2f36',
+                  borderRadius: '8px 8px 0 0',
+                  fontWeight: 600,
+                  color: '#FF6600',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontSize: '0.9rem'
+                }}>
+                  <div>UNIDADE</div>
+                  <div style={{ textAlign: 'center' }}>1º QUARTER</div>
+                  <div style={{ textAlign: 'center' }}>2º QUARTER</div>
+                  <div style={{ textAlign: 'center' }}>3º QUARTER</div>
+                  <div style={{ textAlign: 'center' }}>4º QUARTER</div>
+                </div>
+
+                {/* Lista de unidades */}
+                <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                  {bonusUnidades
+                    .filter(bonus => 
+                      bonus.unidade.toLowerCase().includes(pesquisaUnidadeBonus.toLowerCase())
+                    )
+                    .length === 0 ? (
+                    <div style={{
+                      padding: '40px',
+                      textAlign: 'center',
+                      color: '#adb5bd',
+                      fontFamily: 'Poppins, sans-serif'
+                    }}>
+                      {pesquisaUnidadeBonus ? 'Nenhuma unidade encontrada' : 'Nenhum dado disponível'}
+                    </div>
+                  ) : (
+                    bonusUnidades
+                      .filter(bonus => 
+                        bonus.unidade.toLowerCase().includes(pesquisaUnidadeBonus.toLowerCase())
+                      )
+                      .map((bonus, index) => {
+                        const alteracoesDaUnidade = alteracoesBonus.get(bonus.unidade);
+                        const foiAlterado = alteracoesDaUnidade && alteracoesDaUnidade.size > 0;
+
+                        const bonus1Atual = alteracoesDaUnidade?.get('1') || bonus.quarter1;
+                        const bonus2Atual = alteracoesDaUnidade?.get('2') || bonus.quarter2;
+                        const bonus3Atual = alteracoesDaUnidade?.get('3') || bonus.quarter3;
+                        const bonus4Atual = alteracoesDaUnidade?.get('4') || bonus.quarter4;
+
+                        return (
+                          <div 
+                            key={bonus.unidade}
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
+                              gap: '16px',
+                              padding: '12px 16px',
+                              borderBottom: '1px solid #343A40',
+                              backgroundColor: foiAlterado 
+                                ? '#2a2f3680' 
+                                : index % 2 === 0 
+                                  ? '#2a2f36' 
+                                  : '#23272d',
+                              fontFamily: 'Poppins, sans-serif',
+                              transition: 'background-color 0.2s',
+                              alignItems: 'center'
+                            }}
+                          >
+                            <div style={{ 
+                              color: '#F8F9FA',
+                              display: 'flex',
+                              alignItems: 'center',
+                              fontWeight: foiAlterado ? 600 : 400
+                            }}>
+                              {foiAlterado && <span style={{ color: '#FF6600', marginRight: '8px' }}>●</span>}
+                              {bonus.unidade}
+                            </div>
+                            
+                            {/* Input Quarter 1 */}
+                            <div>
+                              <input
+                                type="number"
+                                min="0"
+                                max="3"
+                                step="0.5"
+                                value={bonus1Atual}
+                                onChange={(e) => handleBonusChange(bonus.unidade, '1', e.target.value)}
+                                className="peso-input"
+                                style={{
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  backgroundColor: '#343A40',
+                                  color: 'white',
+                                  border: alteracoesDaUnidade?.has('1') ? '2px solid #FF6600' : '1px solid #555',
+                                  borderRadius: '6px',
+                                  fontSize: '0.9rem',
+                                  fontFamily: 'Poppins, sans-serif',
+                                  textAlign: 'center',
+                                  outline: 'none'
+                                }}
+                              />
+                            </div>
+
+                            {/* Input Quarter 2 */}
+                            <div>
+                              <input
+                                type="number"
+                                min="0"
+                                max="3"
+                                step="0.5"
+                                value={bonus2Atual}
+                                onChange={(e) => handleBonusChange(bonus.unidade, '2', e.target.value)}
+                                className="peso-input"
+                                style={{
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  backgroundColor: '#343A40',
+                                  color: 'white',
+                                  border: alteracoesDaUnidade?.has('2') ? '2px solid #FF6600' : '1px solid #555',
+                                  borderRadius: '6px',
+                                  fontSize: '0.9rem',
+                                  fontFamily: 'Poppins, sans-serif',
+                                  textAlign: 'center',
+                                  outline: 'none'
+                                }}
+                              />
+                            </div>
+
+                            {/* Input Quarter 3 */}
+                            <div>
+                              <input
+                                type="number"
+                                min="0"
+                                max="3"
+                                step="0.5"
+                                value={bonus3Atual}
+                                onChange={(e) => handleBonusChange(bonus.unidade, '3', e.target.value)}
+                                className="peso-input"
+                                style={{
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  backgroundColor: '#343A40',
+                                  color: 'white',
+                                  border: alteracoesDaUnidade?.has('3') ? '2px solid #FF6600' : '1px solid #555',
+                                  borderRadius: '6px',
+                                  fontSize: '0.9rem',
+                                  fontFamily: 'Poppins, sans-serif',
+                                  textAlign: 'center',
+                                  outline: 'none'
+                                }}
+                              />
+                            </div>
+
+                            {/* Input Quarter 4 */}
+                            <div>
+                              <input
+                                type="number"
+                                min="0"
+                                max="3"
+                                step="0.5"
+                                value={bonus4Atual}
+                                onChange={(e) => handleBonusChange(bonus.unidade, '4', e.target.value)}
+                                className="peso-input"
+                                style={{
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  backgroundColor: '#343A40',
+                                  color: 'white',
+                                  border: alteracoesDaUnidade?.has('4') ? '2px solid #FF6600' : '1px solid #555',
+                                  borderRadius: '6px',
+                                  fontSize: '0.9rem',
+                                  fontFamily: 'Poppins, sans-serif',
+                                  textAlign: 'center',
+                                  outline: 'none'
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })
+                  )}
+                </div>
+
+                {/* Botão de salvar */}
+                <div style={{ 
+                  padding: '16px',
+                  borderTop: '2px solid #343A40',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div style={{ color: '#adb5bd', fontSize: '0.9rem', fontFamily: 'Poppins, sans-serif' }}>
+                    {alteracoesBonus.size > 0 ? (
+                      <span style={{ color: '#FF6600', fontWeight: 600 }}>
+                        {Array.from(alteracoesBonus.values()).reduce((acc, m) => acc + m.size, 0)} alteração(ões) pendente(s)
+                      </span>
+                    ) : (
+                      'Nenhuma alteração pendente'
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={salvarAlteracoesBonus}
+                    disabled={savingBonus || alteracoesBonus.size === 0}
+                    style={{
+                      padding: '10px 24px',
+                      background: alteracoesBonus.size > 0 && !savingBonus
+                        ? 'linear-gradient(to bottom, #22c55e 0%, #16a34a 50%, #15803d 100%)'
+                        : 'linear-gradient(to bottom, #4a5563 0%, #3a4553 50%, #2a3543 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      cursor: alteracoesBonus.size > 0 && !savingBonus ? 'pointer' : 'not-allowed',
+                      fontFamily: 'Poppins, sans-serif',
+                      opacity: savingBonus || alteracoesBonus.size === 0 ? 0.6 : 1,
+                      boxShadow: alteracoesBonus.size > 0 && !savingBonus
+                        ? '0 4px 12px rgba(34, 197, 94, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                        : 'none',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {savingBonus ? 'Salvando...' : 'Salvar Alterações'}
                   </button>
                 </div>
               </div>
