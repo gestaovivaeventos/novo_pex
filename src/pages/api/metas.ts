@@ -10,15 +10,8 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
-    console.log('=== API METAS - Método:', req.method, '===');
-    
     // Validar variáveis de ambiente
     if (!GOOGLE_SHEET_ID || !GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_SERVICE_ACCOUNT_BASE64) {
-      console.error('Variáveis de ambiente faltando!');
-      console.error('GOOGLE_SHEET_ID:', !!GOOGLE_SHEET_ID);
-      console.error('GOOGLE_SERVICE_ACCOUNT_EMAIL:', !!GOOGLE_SERVICE_ACCOUNT_EMAIL);
-      console.error('GOOGLE_SERVICE_ACCOUNT_BASE64:', !!GOOGLE_SERVICE_ACCOUNT_BASE64);
-      
       return res.status(500).json({
         error: 'Configuração incompleta',
         message: 'Variáveis de ambiente do Google não configuradas',
@@ -41,10 +34,6 @@ export default async function handler(
 
     // GET - Buscar dados de metas
     if (req.method === 'GET') {
-      console.log('=== INICIANDO BUSCA DE METAS POR CLUSTER ===');
-      console.log('GOOGLE_SHEET_ID:', GOOGLE_SHEET_ID);
-      console.log('Range solicitado: METAS POR CLUSTER!A:H');
-
       try {
         const response = await sheets.spreadsheets.values.get({
           spreadsheetId: GOOGLE_SHEET_ID,
@@ -52,16 +41,10 @@ export default async function handler(
         });
 
         const rows = response.data.values || [];
-        console.log('Total de linhas recebidas:', rows.length);
-        console.log('Primeira linha (headers):', rows[0]);
-        console.log('Segunda linha (primeiro dado):', rows[1]);
 
         return res.status(200).json(rows);
       } catch (sheetError: any) {
-        console.error('Erro ao buscar aba METAS POR CLUSTER:', sheetError.message);
-        
         // Tentar range alternativo sem espaços
-        console.log('Tentando range alternativo...');
         try {
           const response = await sheets.spreadsheets.values.get({
             spreadsheetId: GOOGLE_SHEET_ID,
@@ -69,10 +52,8 @@ export default async function handler(
           });
           
           const rows = response.data.values || [];
-          console.log('Range alternativo funcionou! Linhas:', rows.length);
           return res.status(200).json(rows);
         } catch (altError: any) {
-          console.error('Range alternativo também falhou:', altError.message);
           throw sheetError; // Lança o erro original
         }
       }
@@ -81,8 +62,6 @@ export default async function handler(
     // POST - Atualizar meta
     if (req.method === 'POST') {
       const { cluster, coluna, valor } = req.body;
-
-      console.log('Recebido POST para atualizar meta:', { cluster, coluna, valor });
 
       if (!cluster || !coluna || valor === undefined) {
         return res.status(400).json({
@@ -146,10 +125,6 @@ export default async function handler(
       const sheetRowNumber = rowIndex + 1;
       const updateRange = `METAS POR CLUSTER!${columnLetter}${sheetRowNumber}`;
 
-      console.log('Atualizando range:', updateRange);
-      console.log('Novo valor (recebido):', valor);
-      console.log('Coluna:', coluna);
-
       // Formatar valor baseado no tipo de coluna
       let valorFormatado: string;
       let valueInputOption: 'RAW' | 'USER_ENTERED' = 'USER_ENTERED';
@@ -180,9 +155,6 @@ export default async function handler(
         valueInputOption = 'USER_ENTERED';
       }
 
-      console.log('Valor formatado para salvar:', valorFormatado);
-      console.log('valueInputOption:', valueInputOption);
-
       await sheets.spreadsheets.values.update({
         spreadsheetId: GOOGLE_SHEET_ID,
         range: updateRange,
@@ -191,8 +163,6 @@ export default async function handler(
           values: [[valorFormatado]],
         },
       });
-
-      console.log('Atualização concluída com sucesso');
 
       return res.status(200).json({
         success: true,
@@ -207,17 +177,6 @@ export default async function handler(
     });
 
   } catch (error: any) {
-    console.error('=== ERRO NA API DE METAS ===');
-    console.error('Tipo do erro:', error.constructor.name);
-    console.error('Mensagem:', error.message);
-    console.error('Stack trace:', error.stack);
-    
-    // Erros específicos do Google API
-    if (error.code) {
-      console.error('Código do erro Google:', error.code);
-      console.error('Detalhes:', error.errors);
-    }
-
     return res.status(500).json({
       error: 'Erro ao processar requisição',
       message: error.message || 'Ocorreu um erro ao processar a requisição',

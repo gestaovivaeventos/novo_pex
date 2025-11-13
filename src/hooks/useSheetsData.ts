@@ -38,20 +38,13 @@ export function useSheetsData(): UseSheetsDataReturn {
 
       const rawData: any[][] = await response.json();
 
-      console.log('🌐 API retornou dados:', rawData.length, 'linhas');
-      console.log('🌐 Primeira linha (headers):', rawData[0]);
-      console.log('🌐 Segunda linha (primeiro registro):', rawData[1]);
-
       // Processar dados da aba DEVERIA
       // Assume que a primeira linha são os headers
       const dadosProcessados = processarDados(rawData);
-      console.log('✅ Dados processados:', dadosProcessados.length, 'registros');
-      console.log('✅ Primeiro registro processado:', dadosProcessados[0]);
       
       setDados(dadosProcessados);
 
     } catch (err: any) {
-      console.error('Erro ao buscar dados do Sheets:', err);
       setError(err.message || 'Erro desconhecido ao buscar dados');
     } finally {
       setLoading(false);

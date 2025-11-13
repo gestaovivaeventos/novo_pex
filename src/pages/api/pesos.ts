@@ -77,9 +77,6 @@ export default async function handler(
 
       const rows = responseGet.data.values || [];
       
-      console.log('Procurando indicador:', indicador);
-      console.log('Total de linhas:', rows.length);
-      
       // Encontrar a linha do indicador (ignorar header - linha 1)
       let rowIndex = -1;
       for (let i = 1; i < rows.length; i++) {
@@ -88,8 +85,6 @@ export default async function handler(
           break;
         }
       }
-
-      console.log('Índice encontrado:', rowIndex);
 
       if (rowIndex === -1) {
         return res.status(404).json({
@@ -113,9 +108,6 @@ export default async function handler(
       const sheetRowNumber = rowIndex + 1;
       const updateRange = `CRITERIOS RANKING!${coluna}${sheetRowNumber}`;
 
-      console.log('Atualizando range:', updateRange);
-      console.log('Novo peso:', peso);
-
       // Converter ponto para vírgula antes de salvar no Google Sheets
       const pesoFormatado = String(peso).replace('.', ',');
 
@@ -127,8 +119,6 @@ export default async function handler(
           values: [[pesoFormatado]],
         },
       });
-
-      console.log('Atualização concluída com sucesso');
 
       return res.status(200).json({
         success: true,
@@ -143,9 +133,6 @@ export default async function handler(
     });
 
   } catch (error: any) {
-    console.error('Erro na API de pesos:', error);
-    console.error('Stack trace:', error.stack);
-
     return res.status(500).json({
       error: 'Erro ao processar requisição',
       message: error.message || 'Ocorreu um erro ao processar a requisição',

@@ -10,11 +10,8 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
-    console.log('=== API BONUS - Método:', req.method, '===');
-    
     // Validar variáveis de ambiente
     if (!GOOGLE_SHEET_ID || !GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_SERVICE_ACCOUNT_BASE64) {
-      console.error('Variáveis de ambiente faltando!');
       return res.status(500).json({
         error: 'Configuração incompleta',
         message: 'Variáveis de ambiente do Google não configuradas',
@@ -37,16 +34,12 @@ export default async function handler(
 
     // GET - Buscar dados de bônus
     if (req.method === 'GET') {
-      console.log('=== INICIANDO BUSCA DE BÔNUS ===');
-      console.log('Range solicitado: DEVERIA!A:V');
-
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId: GOOGLE_SHEET_ID,
         range: 'DEVERIA!A:V',
       });
 
       const rows = response.data.values || [];
-      console.log('Total de linhas recebidas:', rows.length);
 
       // Retornar dados brutos - o frontend vai processar
       return res.status(200).json(rows);
@@ -55,8 +48,6 @@ export default async function handler(
     // POST - Atualizar bônus
     if (req.method === 'POST') {
       const { unidade, quarter, valor } = req.body;
-
-      console.log('Recebido POST para atualizar bônus:', { unidade, quarter, valor });
 
       if (!unidade || !quarter || valor === undefined) {
         return res.status(400).json({
@@ -104,14 +95,9 @@ export default async function handler(
       const sheetRowNumber = rowIndex + 1;
       const updateRange = `DEVERIA!D${sheetRowNumber}`;
 
-      console.log('Atualizando range:', updateRange);
-      console.log('Novo valor (recebido):', valor);
-
       // Formatar valor como número com vírgula (0,5, 1,0, 1,5, etc)
       const numero = parseFloat(String(valor).replace(',', '.'));
       const valorFormatado = String(numero.toFixed(1)).replace('.', ',');
-
-      console.log('Valor formatado para salvar:', valorFormatado);
 
       await sheets.spreadsheets.values.update({
         spreadsheetId: GOOGLE_SHEET_ID,
@@ -121,8 +107,6 @@ export default async function handler(
           values: [[valorFormatado]],
         },
       });
-
-      console.log('Atualização concluída com sucesso');
 
       return res.status(200).json({
         success: true,
@@ -137,16 +121,6 @@ export default async function handler(
     });
 
   } catch (error: any) {
-    console.error('=== ERRO NA API DE BÔNUS ===');
-    console.error('Tipo do erro:', error.constructor.name);
-    console.error('Mensagem:', error.message);
-    console.error('Stack trace:', error.stack);
-    
-    if (error.code) {
-      console.error('Código do erro Google:', error.code);
-      console.error('Detalhes:', error.errors);
-    }
-
     return res.status(500).json({
       error: 'Erro ao processar requisição',
       message: error.message || 'Ocorreu um erro ao processar a requisição',

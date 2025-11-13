@@ -23,7 +23,6 @@ export default async function handler(
 
     // Validar que as variáveis existem
     if (!GOOGLE_SHEET_ID || !GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_SERVICE_ACCOUNT_BASE64) {
-      console.error('Variáveis de ambiente não configuradas');
       return res.status(500).json({
         error: 'Configuração incompleta',
         message: 'Variáveis de ambiente do Google Sheets não configuradas corretamente',
@@ -38,7 +37,6 @@ export default async function handler(
     const { client_email, private_key } = serviceAccount;
 
     if (!client_email || !private_key) {
-      console.error('Service Account JSON inválido');
       return res.status(500).json({
         error: 'Configuração inválida',
         message: 'Service Account não contém client_email ou private_key',
@@ -66,10 +64,6 @@ export default async function handler(
     return res.status(200).json(response.data.values || []);
 
   } catch (error: any) {
-    // Logar erro detalhado no console do servidor
-    console.error('Erro ao buscar dados do Google Sheets:', error);
-    console.error('Stack trace:', error.stack);
-
     // Retornar erro genérico ao cliente (sem expor detalhes internos)
     return res.status(500).json({
       error: 'Erro ao buscar dados',

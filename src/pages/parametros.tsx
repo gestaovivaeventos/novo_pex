@@ -116,23 +116,16 @@ export default function ParametrosPage() {
 
         const dados = await response.json();
         
-        console.log('Dados recebidos da API:', dados);
-        
         if (dados.length > 0) {
           // Primeira linha: headers
           // Segunda linha em diante: dados
           const headers = dados[0];
           const rows = dados.slice(1);
           
-          console.log('Headers:', headers);
-          console.log('Primeiras 3 linhas:', rows.slice(0, 3));
-          
           // Encontrar índice das colunas
           const unidadeIdx = headers.findIndex((h: string) => h === 'nm_unidade');
           const consultorIdx = headers.findIndex((h: string) => h === 'Consultor');
           const consultoresAtivosIdx = headers.findIndex((h: string) => h === 'Consultores ativos');
-          
-          console.log('Índices:', { unidadeIdx, consultorIdx, consultoresAtivosIdx });
           
           // Extrair unidades e consultores
           const unidades: UnidadeConsultor[] = rows
@@ -158,13 +151,11 @@ export default function ParametrosPage() {
           });
           
           const consultoresLista = Array.from(consultoresSet);
-          console.log('Consultores ativos encontrados:', consultoresLista);
           
           setUnidadesConsultores(unidades);
           setConsultoresAtivos(consultoresLista);
         }
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
         setMensagem({ tipo: 'error', texto: 'Erro ao carregar dados da planilha' });
       } finally {
         setLoading(false);
@@ -186,9 +177,7 @@ export default function ParametrosPage() {
         }
 
         const dados = await response.json();
-        
-        console.log('Dados de clusters recebidos:', dados);
-        
+
         if (dados.length > 0) {
           const headers = dados[0];
           const rows = dados.slice(1);
@@ -197,8 +186,6 @@ export default function ParametrosPage() {
           const unidadeIdx = headers.findIndex((h: string) => h === 'nm_unidade');
           const clusterIdx = headers.findIndex((h: string) => h === 'Cluster');
           const clustersAtivosIdx = headers.findIndex((h: string) => h === 'Cluster ativos');
-          
-          console.log('Índices clusters:', { unidadeIdx, clusterIdx, clustersAtivosIdx });
           
           // Extrair unidades e clusters
           const unidades: UnidadeCluster[] = rows
@@ -223,13 +210,11 @@ export default function ParametrosPage() {
           });
           
           const clustersLista = Array.from(clustersSet);
-          console.log('Clusters ativos encontrados:', clustersLista);
           
           setUnidadesClusters(unidades);
           setClustersAtivos(clustersLista);
         }
       } catch (error) {
-        console.error('Erro ao carregar dados de clusters:', error);
         setMensagemClusters({ tipo: 'error', texto: 'Erro ao carregar dados de clusters da planilha' });
       } finally {
         setLoadingClusters(false);
@@ -251,15 +236,10 @@ export default function ParametrosPage() {
         }
 
         const dados = await response.json();
-        
-        console.log('Dados de pesos recebidos:', dados);
-        
+
         if (dados.length > 0) {
           const headers = dados[0];
           const rows = dados.slice(1);
-          
-          console.log('Headers pesos:', headers);
-          console.log('Primeiras linhas pesos:', rows.slice(0, 3));
           
           // Estrutura esperada: coluna B (INDICADOR), C (QUARTER 1), D (QUARTER 2), E (QUARTER 3), F (QUARTER 4)
           const indicadores: IndicadorPeso[] = rows
@@ -280,12 +260,9 @@ export default function ParametrosPage() {
               };
             });
           
-          console.log('Indicadores com pesos:', indicadores);
-          
           setIndicadoresPesos(indicadores);
         }
       } catch (error) {
-        console.error('Erro ao carregar dados de pesos:', error);
         setMensagemPesos({ tipo: 'error', texto: 'Erro ao carregar dados de pesos da planilha' });
       } finally {
         setLoadingPesos(false);
@@ -299,33 +276,19 @@ export default function ParametrosPage() {
   useEffect(() => {
     const carregarDadosMetas = async () => {
       try {
-        console.log('=== INICIANDO CARREGAMENTO DE METAS ===');
         setLoadingMetas(true);
         const response = await fetch('/api/metas');
         
-        console.log('Status da resposta:', response.status);
-        console.log('Response OK:', response.ok);
-        
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('Erro na resposta:', errorText);
           throw new Error('Erro ao carregar dados de metas');
         }
 
         const dados = await response.json();
         
-        console.log('Dados de metas recebidos (raw):', dados);
-        console.log('Tipo dos dados:', typeof dados);
-        console.log('É array?', Array.isArray(dados));
-        console.log('Length:', dados.length);
-        
         if (dados.length > 0) {
           const headers = dados[0];
           const rows = dados.slice(1);
-          
-          console.log('Headers metas:', headers);
-          console.log('Total de linhas de dados:', rows.length);
-          console.log('Primeiras 3 linhas metas:', rows.slice(0, 3));
           
           // Função auxiliar para converter vírgula em ponto e limpar formatação
           const formatarValor = (valor: any): string => {
@@ -362,16 +325,6 @@ export default function ParametrosPage() {
           const metas: MetaCluster[] = rows
             .filter((row: any[]) => row[0]) // Filtrar linhas com cluster
             .map((row: any[]) => {
-              console.log('Processando row:', row);
-              console.log('  Cluster:', row[0]);
-              console.log('  VVR (B):', row[1], 'tipo:', typeof row[1]);
-              console.log('  % ATIGIMENTO MAC (C):', row[2], 'tipo:', typeof row[2]);
-              console.log('  % ENDIVIDAMENTO (D):', row[3], 'tipo:', typeof row[3]);
-              console.log('  NPS (E):', row[4], 'tipo:', typeof row[4]);
-              console.log('  % MC ENTREGA (F):', row[5], 'tipo:', typeof row[5]);
-              console.log('  E-NPS (G):', row[6], 'tipo:', typeof row[6]);
-              console.log('  CONFORMIDADE (H):', row[7], 'tipo:', typeof row[7]);
-              
               return {
                 cluster: row[0] || '',
                 vvr: formatarValor(row[1]),
@@ -384,27 +337,13 @@ export default function ParametrosPage() {
               };
             });
           
-          console.log('Metas processadas:', metas);
-          console.log('Total de metas:', metas.length);
-          
-          if (metas.length === 0) {
-            console.warn('⚠️ ATENÇÃO: Array de metas está vazio após processamento!');
-          } else {
-            console.log('✅ Atualizando estado com', metas.length, 'metas');
-          }
-          
           setMetasClusters(metas);
-          console.log('✅ setMetasClusters chamado');
         } else {
-          console.warn('Nenhum dado retornado da API');
         }
       } catch (error) {
-        console.error('ERRO ao carregar dados de metas:', error);
-        console.error('Stack trace:', error instanceof Error ? error.stack : 'N/A');
         setMensagemMetas({ tipo: 'error', texto: 'Erro ao carregar dados de metas da planilha' });
       } finally {
         setLoadingMetas(false);
-        console.log('=== CARREGAMENTO DE METAS FINALIZADO ===');
       }
     };
 
@@ -416,7 +355,6 @@ export default function ParametrosPage() {
     const carregarDadosBonus = async () => {
       try {
         setLoadingBonus(true);
-        console.log('=== CARREGANDO DADOS DE BÔNUS ===');
         
         const response = await fetch('/api/bonus');
         
@@ -425,12 +363,10 @@ export default function ParametrosPage() {
         }
 
         const dados = await response.json();
-        console.log('Dados brutos recebidos:', dados);
         
         if (dados && dados.length > 1) {
           // Coluna A = nm_unidade, Coluna D = Bonus, Coluna V = QUARTER
           const headers = dados[0];
-          console.log('Headers:', headers);
           
           // Agrupar por unidade
           const bonusPorUnidade = new Map<string, { [key: string]: string }>();
@@ -468,11 +404,9 @@ export default function ParametrosPage() {
           // Ordenar por unidade
           bonusArray.sort((a, b) => a.unidade.localeCompare(b.unidade));
           
-          console.log('Bônus processados:', bonusArray);
           setBonusUnidades(bonusArray);
         }
       } catch (error) {
-        console.error('Erro ao carregar dados de bônus:', error);
         setMensagemBonus({ tipo: 'error', texto: 'Erro ao carregar dados de bônus da planilha' });
       } finally {
         setLoadingBonus(false);
@@ -539,11 +473,9 @@ export default function ParametrosPage() {
 
       // Salvar cada alteração
       const alteracoesArray = Array.from(alteracoes.entries());
-      console.log('Salvando alterações:', alteracoesArray);
       
       for (let i = 0; i < alteracoesArray.length; i++) {
         const [unidade, consultor] = alteracoesArray[i];
-        console.log(`Salvando ${i + 1}/${alteracoesArray.length}:`, { unidade, consultor });
         
         const response = await fetch('/api/consultores', {
           method: 'POST',
@@ -554,10 +486,8 @@ export default function ParametrosPage() {
         });
 
         const resultado = await response.json();
-        console.log('Resposta da API:', resultado);
 
         if (!response.ok) {
-          console.error('Erro na resposta:', resultado);
           throw new Error(resultado.message || `Erro ao atualizar ${unidade}`);
         }
       }
@@ -572,7 +502,6 @@ export default function ParametrosPage() {
       
       setMensagem({ tipo: 'success', texto: `${alteracoes.size} consultor(es) atualizado(s) com sucesso!` });
     } catch (error: any) {
-      console.error('Erro ao salvar:', error);
       setMensagem({ tipo: 'error', texto: error.message || 'Erro ao salvar alterações' });
     } finally {
       setSaving(false);
@@ -635,11 +564,9 @@ export default function ParametrosPage() {
       setMensagemClusters(null);
 
       const alteracoesArray = Array.from(alteracoesClusters.entries());
-      console.log('Salvando alterações de clusters:', alteracoesArray);
       
       for (let i = 0; i < alteracoesArray.length; i++) {
         const [unidade, cluster] = alteracoesArray[i];
-        console.log(`Salvando cluster ${i + 1}/${alteracoesArray.length}:`, { unidade, cluster });
         
         const response = await fetch('/api/clusters', {
           method: 'POST',
@@ -650,10 +577,8 @@ export default function ParametrosPage() {
         });
 
         const resultado = await response.json();
-        console.log('Resposta da API (clusters):', resultado);
 
         if (!response.ok) {
-          console.error('Erro na resposta (clusters):', resultado);
           throw new Error(resultado.message || `Erro ao atualizar cluster de ${unidade}`);
         }
       }
@@ -668,7 +593,6 @@ export default function ParametrosPage() {
       
       setMensagemClusters({ tipo: 'success', texto: `${alteracoesClusters.size} cluster(s) atualizado(s) com sucesso!` });
     } catch (error: any) {
-      console.error('Erro ao salvar clusters:', error);
       setMensagemClusters({ tipo: 'error', texto: error.message || 'Erro ao salvar alterações de clusters' });
     } finally {
       setSavingClusters(false);
@@ -751,8 +675,6 @@ export default function ParametrosPage() {
         totalAlteracoes += quarters.size;
       });
 
-      console.log('Salvando alterações de pesos:', alteracoesPesos);
-      
       let contador = 0;
       const alteracoesArray = Array.from(alteracoesPesos.entries());
       for (let i = 0; i < alteracoesArray.length; i++) {
@@ -762,7 +684,6 @@ export default function ParametrosPage() {
         for (let j = 0; j < quartersArray.length; j++) {
           const [quarter, peso] = quartersArray[j];
           contador++;
-          console.log(`Salvando peso ${contador}/${totalAlteracoes}:`, { indicador, quarter, peso });
           
           const response = await fetch('/api/pesos', {
             method: 'POST',
@@ -773,10 +694,8 @@ export default function ParametrosPage() {
           });
 
           const resultado = await response.json();
-          console.log('Resposta da API (pesos):', resultado);
 
           if (!response.ok) {
-            console.error('Erro na resposta (pesos):', resultado);
             throw new Error(resultado.message || `Erro ao atualizar peso de ${indicador} no Quarter ${quarter}`);
           }
         }
@@ -801,7 +720,6 @@ export default function ParametrosPage() {
       
       setMensagemPesos({ tipo: 'success', texto: `${totalAlteracoes} peso(s) atualizado(s) com sucesso!` });
     } catch (error: any) {
-      console.error('Erro ao salvar pesos:', error);
       setMensagemPesos({ tipo: 'error', texto: error.message || 'Erro ao salvar alterações de pesos' });
     } finally {
       setSavingPesos(false);
@@ -837,8 +755,6 @@ export default function ParametrosPage() {
         totalAlteracoes += colunas.size;
       });
 
-      console.log('Salvando alterações de metas:', alteracoesMetas);
-      
       let contador = 0;
       const alteracoesArray = Array.from(alteracoesMetas.entries());
       for (let i = 0; i < alteracoesArray.length; i++) {
@@ -848,7 +764,6 @@ export default function ParametrosPage() {
         for (let j = 0; j < colunasArray.length; j++) {
           const [coluna, valor] = colunasArray[j];
           contador++;
-          console.log(`Salvando meta ${contador}/${totalAlteracoes}:`, { cluster, coluna, valor });
           
           const response = await fetch('/api/metas', {
             method: 'POST',
@@ -859,10 +774,8 @@ export default function ParametrosPage() {
           });
 
           const resultado = await response.json();
-          console.log('Resposta da API (metas):', resultado);
 
           if (!response.ok) {
-            console.error('Erro na resposta (metas):', resultado);
             throw new Error(resultado.message || `Erro ao atualizar meta de ${cluster} na coluna ${coluna}`);
           }
         }
@@ -890,7 +803,6 @@ export default function ParametrosPage() {
       
       setMensagemMetas({ tipo: 'success', texto: `${totalAlteracoes} meta(s) atualizada(s) com sucesso!` });
     } catch (error: any) {
-      console.error('Erro ao salvar metas:', error);
       setMensagemMetas({ tipo: 'error', texto: error.message || 'Erro ao salvar alterações de metas' });
     } finally {
       setSavingMetas(false);
@@ -932,8 +844,6 @@ export default function ParametrosPage() {
         totalAlteracoes += quarters.size;
       });
 
-      console.log('Salvando alterações de bônus:', alteracoesBonus);
-      
       let contador = 0;
       const alteracoesArray = Array.from(alteracoesBonus.entries());
       for (let i = 0; i < alteracoesArray.length; i++) {
@@ -943,7 +853,6 @@ export default function ParametrosPage() {
         for (let j = 0; j < quartersArray.length; j++) {
           const [quarter, valor] = quartersArray[j];
           contador++;
-          console.log(`Salvando bônus ${contador}/${totalAlteracoes}:`, { unidade, quarter, valor });
           
           const response = await fetch('/api/bonus', {
             method: 'POST',
@@ -954,10 +863,8 @@ export default function ParametrosPage() {
           });
 
           const resultado = await response.json();
-          console.log('Resposta da API (bônus):', resultado);
 
           if (!response.ok) {
-            console.error('Erro na resposta (bônus):', resultado);
             throw new Error(resultado.message || `Erro ao atualizar bônus de ${unidade} no quarter ${quarter}`);
           }
         }
@@ -982,7 +889,6 @@ export default function ParametrosPage() {
       
       setMensagemBonus({ tipo: 'success', texto: `${totalAlteracoes} bônus atualizado(s) com sucesso!` });
     } catch (error: any) {
-      console.error('Erro ao salvar bônus:', error);
       setMensagemBonus({ tipo: 'error', texto: error.message || 'Erro ao salvar alterações de bônus' });
     } finally {
       setSavingBonus(false);
@@ -1617,11 +1523,6 @@ export default function ParametrosPage() {
 
                 {/* Lista de metas */}
                 <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                  {(() => {
-                    console.log('🎨 RENDERIZANDO lista de metas. Length:', metasClusters.length);
-                    console.log('🎨 metasClusters:', metasClusters);
-                    return null;
-                  })()}
                   {metasClusters.length === 0 ? (
                     <div style={{
                       padding: '40px',

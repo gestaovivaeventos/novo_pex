@@ -76,10 +76,6 @@ export default async function handler(
 
       const rows = responseGet.data.values || [];
       
-      console.log('Procurando unidade:', unidade);
-      console.log('Total de linhas:', rows.length);
-      console.log('Primeiras 5 linhas:', rows.slice(0, 5));
-      
       // Encontrar a linha da unidade (ignorar header - linha 1)
       let rowIndex = -1;
       for (let i = 1; i < rows.length; i++) {
@@ -88,8 +84,6 @@ export default async function handler(
           break;
         }
       }
-
-      console.log('Índice encontrado:', rowIndex);
 
       if (rowIndex === -1) {
         return res.status(404).json({
@@ -103,9 +97,6 @@ export default async function handler(
       const sheetRowNumber = rowIndex + 1;
       const updateRange = `UNI CONS!B${sheetRowNumber}`;
 
-      console.log('Atualizando range:', updateRange);
-      console.log('Novo consultor:', consultor);
-
       await sheets.spreadsheets.values.update({
         spreadsheetId: GOOGLE_SHEET_ID,
         range: updateRange,
@@ -114,8 +105,6 @@ export default async function handler(
           values: [[consultor]],
         },
       });
-
-      console.log('Atualização concluída com sucesso');
 
       return res.status(200).json({
         success: true,
@@ -130,9 +119,6 @@ export default async function handler(
     });
 
   } catch (error: any) {
-    console.error('Erro na API de consultores:', error);
-    console.error('Stack trace:', error.stack);
-
     return res.status(500).json({
       error: 'Erro ao processar requisição',
       message: error.message || 'Ocorreu um erro ao processar a requisição',

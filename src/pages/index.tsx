@@ -30,18 +30,11 @@ export default function HomePage() {
   const listaQuarters = useMemo(() => {
     if (!dadosBrutos || dadosBrutos.length === 0) return [];
     
-    // DEBUG: Ver estrutura dos dados
-    console.log('📊 Dados brutos:', dadosBrutos[0]);
-    console.log('📊 Total de registros:', dadosBrutos.length);
-    console.log('📊 TODAS AS COLUNAS DISPONÍVEIS:', Object.keys(dadosBrutos[0]));
-    
     // Extrair valores únicos da coluna 'QUARTER' (Coluna V)
     const quarters = dadosBrutos
       .map(item => item.QUARTER)
       .filter((value, index, self) => value && self.indexOf(value) === index)
       .sort();
-    
-    console.log('📊 Quarters encontrados:', quarters);
     
     return quarters;
   }, [dadosBrutos]);
@@ -60,26 +53,18 @@ export default function HomePage() {
   const listaConsultores = useMemo(() => {
     if (!dadosBrutos || dadosBrutos.length === 0) return [];
     
-    // DEBUG: Ver quais colunas existem
-    console.log('📊 Colunas disponíveis:', Object.keys(dadosBrutos[0]));
-    
     // Tentar encontrar a coluna correta para consultor
     const possiveisNomesConsultor = ['Consultor', 'CONSULTOR', 'consultor', 'CONSULTOR RESPONSAVEL', 'Consultor Responsável', 'Consultor Responsavel'];
     let nomeColuna = possiveisNomesConsultor.find(nome => dadosBrutos[0].hasOwnProperty(nome));
     
     if (!nomeColuna) {
-      console.warn('⚠️ Coluna de consultor não encontrada! Colunas disponíveis:', Object.keys(dadosBrutos[0]));
       return [];
     }
-    
-    console.log('📊 Nome da coluna do consultor:', nomeColuna);
     
     const consultores = dadosBrutos
       .map(item => item[nomeColuna])
       .filter((value, index, self) => value && self.indexOf(value) === index)
       .sort();
-    
-    console.log('📊 Consultores encontrados:', consultores);
     
     return consultores;
   }, [dadosBrutos]);
@@ -98,8 +83,6 @@ export default function HomePage() {
   const listaUnidadesFiltradas = useMemo(() => {
     if (!dadosBrutos || dadosBrutos.length === 0) return [];
 
-    console.log('🔍 Filtros aplicados:', { filtroQuarter, filtroCluster, filtroConsultor });
-    
     // Aplicar todos os filtros
     let dadosFiltrados = dadosBrutos;
     
@@ -115,14 +98,10 @@ export default function HomePage() {
       dadosFiltrados = dadosFiltrados.filter(item => item[nomeColunaConsultor] === filtroConsultor);
     }
     
-    console.log('🔍 Registros após filtros:', dadosFiltrados.length);
-    
     const unidades = dadosFiltrados
       .map(item => item.nm_unidade)
       .filter((value, index, self) => value && self.indexOf(value) === index)
       .sort();
-
-    console.log('🔍 Unidades encontradas:', unidades);
 
     return unidades;
   }, [dadosBrutos, filtroQuarter, filtroCluster, filtroConsultor]);
@@ -325,10 +304,6 @@ export default function HomePage() {
     if (!itemSelecionado || !dadosBrutos || !filtroQuarter) return [];
 
     const cluster = itemSelecionado.cluster;
-
-    // DEBUG: Ver colunas disponíveis
-    console.log('📊 Colunas do item selecionado:', Object.keys(itemSelecionado));
-    console.log('📊 Item selecionado completo:', itemSelecionado);
 
     // Função auxiliar para converter valor para número
     const parseValor = (valor: any): number => {
