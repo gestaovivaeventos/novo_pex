@@ -6,6 +6,7 @@
 
 - [Visão Geral](#visão-geral)
 - [Funcionalidades](#funcionalidades)
+- [Interface e UX](#interface-e-ux)
 - [Tecnologias](#tecnologias)
 - [Instalação e Execução](#instalação-e-execução)
 - [Configuração](#configuração)
@@ -38,6 +39,7 @@ O PEX é um programa anual (de conviva a conviva) que visa reconhecer e premiar 
 - ✅ Gestão de clusters e metas personalizadas
 - ✅ Sistema de bonificações e reconhecimento
 - ✅ Exportação de relatórios e histórico de performance
+- ✅ Interface responsiva e otimizada para múltiplos dispositivos
 
 ## ✨ Funcionalidades
 
@@ -63,6 +65,7 @@ O PEX é um programa anual (de conviva a conviva) que visa reconhecer e premiar 
 - Distribuição de pesos (0-5) por indicador em cada onda
 - Soma total de pesos sempre igual a 10
 - Acompanhamento de performance por onda
+- Visualização de pesos por indicador no dashboard
 
 ### 4. Bonificações
 
@@ -76,7 +79,44 @@ O PEX é um programa anual (de conviva a conviva) que visa reconhecer e premiar 
 - Cálculo automático de pontuação final (média das ondas)
 - Ranking dentro de cada cluster
 - Visualização de evolução ao longo das ondas
-- Exportação de relatórios detalhados
+- Top 3 podium com medalhas por cluster
+- Exportação de relatórios detalhados em Excel
+
+### 6. Páginas Principais
+
+- **Ranking** (página inicial): Exibição dos top 3 e top 10 por cluster
+- **Resultados**: Dashboard com indicadores por quarter, filtros avançados e tabela resumida
+- **Gerenciamento de Parâmetros**: Gestão de consultores, clusters, metas, pesos e bônus
+- **Navegação Intuitiva**: Sidebar recolhível com navegação entre páginas
+
+## 🎨 Interface e UX
+
+### Design e Tema
+
+- **Tema Escuro Corporativo**: Background #212529 com componentes em #343A40
+- **Identidade Visual Viva**: Logo Viva Eventos integrada no header
+- **Tipografia**: Poppins (corpo) e Orbitron (títulos) para destaque
+- **Cores Principais**: 
+  - Laranja (#FF6600) para ações e destaques
+  - Branco (#F8F9FA) para textos principais
+  - Cinza (#6c757d) para textos secundários
+
+### Componentes Visuais
+
+- **Header**: Barra superior com logo e título do programa
+- **Sidebar**: Navegação recolhível com filtros contextuais (Quarter, Unidade, Cluster, Consultor)
+- **Cards de Indicadores**: Exibição de pontuação, comparativos e peso do indicador
+- **Tabela Resumida**: Listagem de unidades com todas as pontuações, ordenação por coluna
+- **Footer**: Crédito de desenvolvimento na base de todas as páginas
+- **Favicon**: Logo Viva como favicon para branding em abas do navegador
+
+### Recursos de Otimização
+
+- Exportação de dados para Excel via botão dedicado
+- Filtros dinâmicos que atualizam todos os gráficos e tabelas em tempo real
+- Tabelas com scroll vertical para melhor visualização
+- Títulos HTML específicos por página para melhor SEO e identificação em abas
+- Responsive design que funciona em desktop, tablet e mobile
 
 ## 🛠 Tecnologias
 
@@ -86,6 +126,7 @@ O PEX é um programa anual (de conviva a conviva) que visa reconhecer e premiar 
 - **Banco de Dados**: Firebase Firestore (Conta Principal Corporativa)
 - **Autenticação**: Firebase Authentication
 - **Integração**: Google Sheets API (googleapis)
+- **Exportação**: XLSX para relatórios em Excel
 - **Analytics**: Google Analytics 4
 - **Hospedagem**: Vercel
 - **Ferramentas**: Git, npm, ESLint
@@ -124,6 +165,7 @@ O PEX é um programa anual (de conviva a conviva) que visa reconhecer e premiar 
 
 5. **Acesse a aplicação**
    - Abra seu navegador em `http://localhost:3000`
+   - A aplicação redirecionará automaticamente para `/ranking`
 
 ### Build para Produção
 
@@ -181,48 +223,107 @@ Para configurar a integração com Google Sheets, consulte o guia completo em [G
 4. Codificar o JSON da Service Account em Base64
 5. Configurar as 3 variáveis de ambiente
 
+### Abas do Google Sheets Esperadas
+
+- **DEVERIA**: Dados principais com colunas de indicadores por quarter
+- **CRITERIOS RANKING**: Pesos dos indicadores por quarter (VVR, MAC, ENDIVIDAMENTO, NPS, % MC (ENTREGA), E-NPS, % CONFORMIDADES)
+- **METAS**: Metas por cluster para cada indicador
+
 ## 📁 Estrutura do Projeto
 
 ```
 novo_pex/
-├── public/                    # Arquivos estáticos
-│   └── index.html            # HTML principal
+├── public/                       # Arquivos estáticos
+│   ├── index.html               # HTML principal
+│   └── logo_viva.png            # Logo para favicon
 ├── src/
-│   ├── components/           # Componentes React reutilizáveis
-│   │   ├── Card.tsx         # Card genérico
-│   │   ├── Header.tsx       # Cabeçalho da aplicação
-│   │   ├── ClusterBadge.tsx # Badge de cluster
-│   │   ├── IndicadorCard.tsx # Card de indicador
-│   │   ├── TabelaRanking.tsx # Tabela de ranking
-│   │   └── ResumoOnda.tsx   # Resumo de onda
-│   ├── pages/               # Páginas Next.js
-│   │   └── api/            # API Routes
-│   │       └── sheets.ts   # Handler Google Sheets API
-│   ├── hooks/              # React Hooks customizados
-│   │   └── useSheetsData.ts # Hook para buscar dados do Sheets
-│   ├── styles/             # Estilos globais
-│   │   └── globals.css     # CSS global com Tailwind
-│   ├── utils/              # Funções utilitárias
-│   │   ├── calculosPex.ts  # Cálculos dos indicadores PEX
-│   │   ├── formatacao.ts   # Formatação de dados
-│   │   └── validacao.ts    # Validações
-│   ├── config/             # Configurações
-│   │   ├── firebase.ts     # Configuração Firebase
-│   │   └── app.config.ts   # Configurações da aplicação
-│   └── types/              # TypeScript types
-│       └── pex.types.ts    # Tipos do PEX
-├── .env                    # Variáveis de ambiente (NÃO COMMITAR)
-├── .env.example            # Template de variáveis
-├── .gitignore              # Arquivos ignorados pelo Git
-├── GOOGLE_SHEETS_SETUP.md  # Guia de configuração Google Sheets
-├── package.json            # Dependências
-├── tsconfig.json           # Configuração TypeScript
-├── next.config.js          # Configuração Next.js
-├── tailwind.config.js      # Configuração Tailwind
-├── postcss.config.js       # Configuração PostCSS
-├── vercel.json             # Configuração Vercel
-└── README.md               # Este arquivo
+│   ├── components/              # Componentes React reutilizáveis
+│   │   ├── Card.tsx            # Card genérico com estilos customizados
+│   │   ├── Header.tsx          # Cabeçalho com logo Viva
+│   │   ├── Footer.tsx          # Footer com crédito de desenvolvimento
+│   │   ├── Sidebar.tsx         # Sidebar com navegação e filtros
+│   │   ├── ClusterBadge.tsx    # Badge de cluster
+│   │   ├── IndicadorCard.tsx   # Card de indicador com peso
+│   │   ├── TabelaRanking.tsx   # Tabela de ranking com top 3
+│   │   ├── TabelaResumo.tsx    # Tabela resumida com exportação Excel
+│   │   └── ResumoOnda.tsx      # Resumo de onda
+│   ├── pages/                  # Páginas Next.js
+│   │   ├── index.tsx           # Página de redirecionamento para /ranking
+│   │   ├── ranking.tsx         # Página de ranking (principal)
+│   │   ├── resultados.tsx      # Página de resultados/dashboard
+│   │   ├── parametros.tsx      # Página de gerenciamento de parâmetros
+│   │   ├── _app.tsx            # App wrapper
+│   │   ├── _document.tsx       # Document wrapper com favicon
+│   │   └── api/                # API Routes
+│   │       ├── sheets.ts       # Handler Google Sheets (dados)
+│   │       ├── pesos.ts        # Handler pesos dos indicadores
+│   │       ├── consultores.ts  # Handler consultores
+│   │       ├── clusters.ts     # Handler clusters
+│   │       ├── metas.ts        # Handler metas
+│   │       └── bonus.ts        # Handler bônus
+│   ├── hooks/                  # React Hooks customizados
+│   │   └── useSheetsData.ts    # Hook para buscar dados do Sheets
+│   ├── styles/                 # Estilos globais
+│   │   └── globals.css         # CSS global com Tailwind
+│   ├── utils/                  # Funções utilitárias
+│   │   ├── calculosPex.ts      # Cálculos dos indicadores PEX
+│   │   ├── formatacao.ts       # Formatação de dados
+│   │   ├── validacao.ts        # Validações
+│   │   └── dadosMock.ts        # Dados simulados para desenvolvimento
+│   ├── config/                 # Configurações
+│   │   ├── firebase.ts         # Configuração Firebase
+│   │   └── app.config.ts       # Configurações da aplicação
+│   └── types/                  # TypeScript types
+│       └── pex.types.ts        # Tipos do PEX
+├── .env                        # Variáveis de ambiente (NÃO COMMITAR)
+├── .env.example                # Template de variáveis
+├── .gitignore                  # Arquivos ignorados pelo Git
+├── GOOGLE_SHEETS_SETUP.md      # Guia de configuração Google Sheets
+├── GUIA_EXECUCAO.md            # Guia de execução e uso
+├── PAGINA_PRINCIPAL.md         # Documentação da página principal
+├── package.json                # Dependências
+├── tsconfig.json               # Configuração TypeScript
+├── next.config.js              # Configuração Next.js
+├── tailwind.config.js          # Configuração Tailwind
+├── postcss.config.js           # Configuração PostCSS
+├── vercel.json                 # Configuração Vercel
+└── README.md                   # Este arquivo
 ```
+
+## 🎯 Fluxo de Navegação
+
+1. **Acesso**: Usuário acessa `localhost:3000` ou `seu-dominio.com`
+2. **Redirecionamento**: Automático para `/ranking` (página principal)
+3. **Ranking**: Visualiza top 3 com medalhas e top 10 de cada cluster
+4. **Filtros (Sidebar)**: Quarter, Unidade, Cluster, Consultor
+5. **Resultados**: Dashboard com indicadores e comparativos
+6. **Parâmetros**: Gerenciamento de dados base do sistema
+7. **Navegação**: Sidebar permite retornar a qualquer página
+
+## 📊 Páginas e Funcionalidades
+
+### 1. Página de Ranking (`/ranking`)
+- **Conteúdo**: Top 3 (com podium e medalhas) + Top 10 por cluster
+- **Dados**: Média de todos os quarters
+- **Visualização**: Clusterizado e ranqueado automaticamente
+
+### 2. Página de Resultados (`/resultados`)
+- **Conteúdo**: Cards de indicadores com pesos + tabela resumida
+- **Filtros**: Quarter, Unidade, Cluster, Consultor
+- **Indicadores**: 8 cards (7 indicadores + 1 bônus)
+- **Comparativos**: Melhor pontuação da rede e cluster por indicador
+- **Exportação**: Tabela pode ser exportada para Excel
+
+### 3. Página de Parâmetros (`/parametros`)
+- **Consultor**: CRUD de consultores responsáveis
+- **Cluster**: CRUD de clusters de franquias
+- **Metas**: Configuração de metas por cluster
+- **Pesos**: Definição de pesos por indicador e quarter
+- **Bônus**: Registro de bonificações
+
+### 4. Página Principal (Redirecionamento automático para `/ranking`)
+- Exibe mensagem "Redirecionando..."
+- Redireciona para `/ranking` ao carregar
 
 ## 🔐 Segurança
 
@@ -250,6 +351,9 @@ Este projeto foi desenvolvido seguindo rigorosamente o **Documento de Diretrizes
 - ✅ Variáveis de ambiente para credenciais
 - ✅ GitFlow com branches e code review
 - ✅ Conventional Commits
+- ✅ Sem console.log em produção
+- ✅ Footer com crédito de desenvolvimento
+- ✅ Favicon e títulos HTML específicos
 
 ## 🐛 Troubleshooting
 
@@ -275,6 +379,12 @@ npm install
 - Verifique se as credenciais no `.env` estão corretas
 - Confirme que está usando a conta principal corporativa
 - Consulte o Cofre Central de Credenciais para chaves atualizadas
+
+### Pesos não aparecem nos indicadores
+**Solução**:
+- Verifique se a aba "CRITERIOS RANKING" está configurada corretamente
+- Confirme que os nomes dos indicadores correspondem aos esperados
+- Verifique se o quarter está selecionado no filtro
 
 ### Erros de TypeScript/Lint
 **Solução**: Os erros mostrados são esperados antes da instalação das dependências. Execute `npm install` para resolvê-los.
@@ -304,6 +414,6 @@ npm install
 
 ---
 
-**Versão**: 1.0.0  
+**Versão**: 2.0.0  
 **Última Atualização**: Novembro 2025  
 **Licença**: Proprietário - Gestão Viva Eventos
