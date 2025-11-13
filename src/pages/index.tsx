@@ -1,6 +1,7 @@
 ﻿import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Footer from '@/components/Footer';
 
 export default function HomePage() {
   const router = useRouter();
@@ -23,9 +24,13 @@ export default function HomePage() {
         alignItems: 'center',
         justifyContent: 'center',
         color: '#adb5bd',
-        fontFamily: 'Poppins, sans-serif'
+        fontFamily: 'Poppins, sans-serif',
+        flexDirection: 'column'
       }}>
-        Redirecionando...
+        <div style={{ marginBottom: '40px' }}>
+          Redirecionando...
+        </div>
+        <Footer />
       </div>
     </>
   );

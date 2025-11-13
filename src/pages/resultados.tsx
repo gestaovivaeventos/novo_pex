@@ -12,6 +12,7 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import IndicadorCard from '@/components/IndicadorCard';
 import TabelaResumo from '@/components/TabelaResumo';
+import Footer from '@/components/Footer';
 
 export default function HomePage() {
   // Buscar dados do Google Sheets
@@ -907,6 +908,7 @@ export default function HomePage() {
           </Card>
         </div>
       </main>
+      <Footer />
       </div>
     </div>
   );

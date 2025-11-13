@@ -80,7 +80,7 @@ export default function Sidebar({
         top: 0,
         bottom: 0,
         width: isCollapsed ? '0px' : '280px',
-        backgroundColor: '#212529',
+        backgroundColor: '#343A40',
         borderRight: isCollapsed ? 'none' : '2px solid #343A40',
         transition: 'width 0.3s ease',
         zIndex: 100,

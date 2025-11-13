@@ -8,6 +8,7 @@ import Head from 'next/head';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
 import Sidebar from '@/components/Sidebar';
+import Footer from '@/components/Footer';
 import { useSheetsData } from '@/hooks/useSheetsData';
 
 interface UnidadeConsultor {
@@ -2408,6 +2409,7 @@ export default function ParametrosPage() {
             )}
           </Card>
         </main>
+        <Footer />
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import { useSheetsData } from '@/hooks/useSheetsData';
 import Card from '@/components/Card';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
+import Footer from '@/components/Footer';
 
 export default function RankingPage() {
   // Buscar dados do Google Sheets
@@ -1152,6 +1153,7 @@ export default function RankingPage() {
             </Card>
           </div>
         </main>
+        <Footer />
       </div>
     </div>
   );
