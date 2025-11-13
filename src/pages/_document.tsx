@@ -12,7 +12,8 @@ export default function Document() {
         <meta charSet="utf-8" />
         <meta name="description" content="Dashboard do Programa de Excelência (PEX) - Gestão de performance da rede de franquias" />
         <meta name="theme-color" content="#FF6600" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" href="/logo_viva.png" />
+        <link rel="apple-touch-icon" href="/logo_viva.png" />
         
         {/* Google Fonts - Poppins e Orbitron */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
