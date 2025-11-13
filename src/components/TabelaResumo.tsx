@@ -205,7 +205,7 @@ export default function TabelaResumo({
                   onClick={() => handleOrdenar(coluna.key)}
                   style={{
                     color: '#adb5bd',
-                    fontSize: '0.7rem',
+                    fontSize: '0.95rem',
                     fontWeight: 600,
                     textTransform: 'uppercase',
                     padding: '12px 8px',

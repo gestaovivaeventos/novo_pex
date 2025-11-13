@@ -32,7 +32,7 @@ export default function IndicadorCard({
       {/* Título do Indicador */}
       <h3 
         className="text-sm font-bold mb-2 uppercase tracking-wide"
-        style={{ color: '#F8F9FA' }}
+        style={{ color: '#F8F9FA', fontSize: '1rem' }}
       >
         {titulo}
       </h3>
@@ -68,7 +68,7 @@ export default function IndicadorCard({
         <div className="flex justify-between items-center">
           <span 
             className="text-xs uppercase tracking-wide"
-            style={{ color: '#6c757d' }}
+            style={{ color: '#F8F9FA', fontSize: '0.8rem' }}
           >
             Melhor Pontuação - Rede
           </span>
@@ -82,7 +82,7 @@ export default function IndicadorCard({
         {unidadeMelhorRede && (
           <p 
             className="text-xs mt-1"
-            style={{ color: '#6c757d' }}
+            style={{ color: '#F8F9FA' }}
           >
             {unidadeMelhorRede}
           </p>
@@ -94,7 +94,7 @@ export default function IndicadorCard({
         <div className="flex justify-between items-center">
           <span 
             className="text-xs uppercase tracking-wide"
-            style={{ color: '#6c757d' }}
+            style={{ color: '#F8F9FA', fontSize: '0.8rem' }}
           >
             Melhor Pontuação - Cluster
           </span>
@@ -108,7 +108,7 @@ export default function IndicadorCard({
         {unidadeMelhorCluster && (
           <p 
             className="text-xs mt-1"
-            style={{ color: '#6c757d' }}
+            style={{ color: '#F8F9FA' }}
           >
             {unidadeMelhorCluster}
           </p>
