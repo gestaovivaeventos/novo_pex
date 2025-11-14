@@ -25,8 +25,8 @@ const INDICADORES = [
   { codigo: 'NPS', nome: 'NPS' },
   { codigo: 'MC % (entrega)', nome: 'MC %\n(entrega)' },
   { codigo: 'Satisfação do colaborador - e-NPS', nome: 'Satisfação do colaborador - e-NPS' },
-  { codigo: '*Conformidades', nome: '*Conformidades' },
-  { codigo: 'Pontuação com bonus', nome: 'Pontuação com bonus' }
+  { codigo: '*Conformidades', nome: 'Conformidades' },
+  { codigo: 'Pontuação com bonus', nome: 'Pontuação no Mês' }
 ];
 
 export default function GraficoEvolucao({ 
@@ -376,7 +376,7 @@ export default function GraficoEvolucao({
             <Tooltip
               contentStyle={{
                 backgroundColor: '#1a1d23',
-                border: '2px solid #FF6600',
+                border: 'none',
                 borderRadius: '8px',
                 padding: '12px 16px',
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)'
@@ -384,12 +384,12 @@ export default function GraficoEvolucao({
               labelStyle={{ 
                 color: '#F8F9FA', 
                 fontWeight: 600,
-                fontSize: '14px',
+                fontSize: '18px',
                 marginBottom: '8px'
               }}
               itemStyle={{
                 color: '#F8F9FA',
-                fontSize: '13px',
+                fontSize: '16px',
                 padding: '4px 0'
               }}
               formatter={(value: any, name: string) => {
@@ -406,14 +406,14 @@ export default function GraficoEvolucao({
               dataKey="valor"
               stroke="#FF6600"
               strokeWidth={3}
-              dot={{ fill: '#FF6600', r: 5 }}
-              activeDot={{ r: 8 }}
+              dot={{ fill: '#FF6600', r: 3 }}
+              activeDot={{ r: 6 }}
               name={INDICADORES.find(i => i.codigo === indicadorSelecionado)?.nome || indicadorSelecionado}
               connectNulls={false}
               label={{
                 position: 'top',
                 fill: '#FF6600',
-                fontSize: 16,
+                fontSize: 20,
                 fontWeight: 700,
                 offset: 10,
                 formatter: (value: any) => value !== null ? Number(value).toFixed(1) : ''
