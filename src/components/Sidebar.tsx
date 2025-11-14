@@ -43,6 +43,19 @@ export default function Sidebar({
   const [searchUnidade, setSearchUnidade] = useState('');
   const [isUnidadeDropdownOpen, setIsUnidadeDropdownOpen] = useState(false);
 
+  // Estilo para os option elements dos selects
+  const selectOptionStyle = `
+    select option {
+      background-color: #2a2f36 !important;
+      color: white !important;
+      padding: 8px 12px !important;
+    }
+    select option:checked {
+      background-color: #FF6600 !important;
+      color: white !important;
+    }
+  `;
+
   const toggleCollapse = () => {
     const newCollapsedState = !isCollapsed;
     setIsCollapsed(newCollapsedState);
@@ -73,8 +86,10 @@ export default function Sidebar({
   }, [isUnidadeDropdownOpen]);
 
   return (
-    <div
-      style={{
+    <>
+      <style>{selectOptionStyle}</style>
+      <div
+        style={{
         position: 'fixed',
         left: 0,
         top: 0,
@@ -322,34 +337,52 @@ export default function Sidebar({
             >
               📊 Quarter
             </label>
-            <select
-              value={quarterSelecionado || ''}
-              onChange={(e) => onQuarterChange(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#343A40',
-                color: 'white',
-                border: '1px solid #555',
-                borderRadius: '8px',
-                fontSize: '0.9rem',
-                fontFamily: 'Poppins, sans-serif',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#FF6600';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#555';
-              }}
-            >
-              {quarters.map((quarter) => (
-                <option key={quarter} value={quarter}>
-                  {quarter === '1' ? '1º Quarter' : quarter === '2' ? '2º Quarter' : quarter === '3' ? '3º Quarter' : '4º Quarter'}
-                </option>
-              ))}
-            </select>
+            <div style={{ position: 'relative' }}>
+              <select
+                value={quarterSelecionado || ''}
+                onChange={(e) => onQuarterChange(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: 'linear-gradient(to bottom, #5a6573 0%, #4a5563 50%, #3a4553 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  fontFamily: 'Poppins, sans-serif',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)',
+                  WebkitAppearance: 'none',
+                  appearance: 'none',
+                  paddingRight: '40px'
+                } as React.CSSProperties}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = 'translateY(2px)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3)';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }}
+              >
+                {quarters.map((quarter) => (
+                  <option key={quarter} value={quarter}>
+                    {quarter === '1' ? '1º Quarter' : quarter === '2' ? '2º Quarter' : quarter === '3' ? '3º Quarter' : '4º Quarter'}
+                  </option>
+                ))}
+              </select>
+              <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '0.7rem', color: 'white' }}>▼</span>
+            </div>
           </div>
 
           {/* Filtro de Consultor */}
@@ -368,35 +401,53 @@ export default function Sidebar({
             >
               👤 Consultor Responsável
             </label>
-            <select
-              value={consultorSelecionado || ''}
-              onChange={(e) => onConsultorChange(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#343A40',
-                color: 'white',
-                border: '1px solid #555',
-                borderRadius: '8px',
-                fontSize: '0.9rem',
-                fontFamily: 'Poppins, sans-serif',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#FF6600';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#555';
-              }}
-            >
-              <option value="">Todos os Consultores</option>
-              {consultores.map((consultor) => (
-                <option key={consultor} value={consultor}>
-                  {consultor}
-                </option>
-              ))}
-            </select>
+            <div style={{ position: 'relative' }}>
+              <select
+                value={consultorSelecionado || ''}
+                onChange={(e) => onConsultorChange(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: 'linear-gradient(to bottom, #5a6573 0%, #4a5563 50%, #3a4553 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  fontFamily: 'Poppins, sans-serif',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)',
+                  WebkitAppearance: 'none',
+                  appearance: 'none',
+                  paddingRight: '40px'
+                } as React.CSSProperties}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = 'translateY(2px)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3)';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }}
+              >
+                <option value="">Todos os Consultores</option>
+                {consultores.map((consultor) => (
+                  <option key={consultor} value={consultor}>
+                    {consultor}
+                  </option>
+                ))}
+              </select>
+              <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '0.7rem', color: 'white' }}>▼</span>
+            </div>
           </div>
 
           {/* Filtro de Cluster */}
@@ -415,35 +466,53 @@ export default function Sidebar({
             >
               🎯 Cluster
             </label>
-            <select
-              value={clusterSelecionado || ''}
-              onChange={(e) => onClusterChange(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#343A40',
-                color: 'white',
-                border: '1px solid #555',
-                borderRadius: '8px',
-                fontSize: '0.9rem',
-                fontFamily: 'Poppins, sans-serif',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#FF6600';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#555';
-              }}
-            >
-              <option value="">Todos os Clusters</option>
-              {clusters.map((cluster) => (
-                <option key={cluster} value={cluster}>
-                  {cluster}
-                </option>
-              ))}
-            </select>
+            <div style={{ position: 'relative' }}>
+              <select
+                value={clusterSelecionado || ''}
+                onChange={(e) => onClusterChange(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: 'linear-gradient(to bottom, #5a6573 0%, #4a5563 50%, #3a4553 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  fontFamily: 'Poppins, sans-serif',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)',
+                  WebkitAppearance: 'none',
+                  appearance: 'none',
+                  paddingRight: '40px'
+                } as React.CSSProperties}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = 'translateY(2px)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3)';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }}
+              >
+                <option value="">Todos os Clusters</option>
+                {clusters.map((cluster) => (
+                  <option key={cluster} value={cluster}>
+                    {cluster}
+                  </option>
+                ))}
+              </select>
+              <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '0.7rem', color: 'white' }}>▼</span>
+            </div>
           </div>
 
           {/* Filtro de Unidade */}
@@ -469,24 +538,36 @@ export default function Sidebar({
                 onClick={() => setIsUnidadeDropdownOpen(!isUnidadeDropdownOpen)}
                 style={{
                   width: '100%',
-                  padding: '12px',
-                  backgroundColor: '#343A40',
-                  color: unidadeSelecionada ? 'white' : '#aaa',
-                  border: '1px solid #555',
+                  padding: '12px 16px',
+                  background: 'linear-gradient(to bottom, #5a6573 0%, #4a5563 50%, #3a4553 100%)',
+                  color: 'white',
+                  border: 'none',
                   borderRadius: '8px',
                   fontSize: '0.9rem',
+                  fontWeight: 600,
                   fontFamily: 'Poppins, sans-serif',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                   display: 'flex',
                   justifyContent: 'space-between',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#FF6600';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#555';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = 'translateY(2px)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3)';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
                 }}
               >
                 <span>{unidadeSelecionada || 'Todas as Unidades'}</span>
@@ -502,17 +583,17 @@ export default function Sidebar({
                     left: 0,
                     right: 0,
                     marginTop: '4px',
-                    backgroundColor: '#343A40',
-                    border: '1px solid #FF6600',
+                    backgroundColor: '#2a2f36',
+                    border: '2px solid #FF6600',
                     borderRadius: '8px',
                     zIndex: 1000,
                     maxHeight: '300px',
                     overflow: 'hidden',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.5)'
                   }}
                 >
                   {/* Caixa de pesquisa dentro do dropdown */}
-                  <div style={{ padding: '8px', borderBottom: '1px solid #555' }}>
+                  <div style={{ padding: '8px', borderBottom: '1px solid #3a3f46' }}>
                     <input
                       type="text"
                       placeholder="🔍 Pesquisar..."
@@ -522,9 +603,9 @@ export default function Sidebar({
                       style={{
                         width: '100%',
                         padding: '8px 10px',
-                        backgroundColor: '#2a2f36',
+                        backgroundColor: '#1f2329',
                         color: 'white',
-                        border: '1px solid #555',
+                        border: '1px solid #3a3f46',
                         borderRadius: '6px',
                         fontSize: '0.85rem',
                         fontFamily: 'Poppins, sans-serif',
@@ -534,7 +615,7 @@ export default function Sidebar({
                         e.currentTarget.style.borderColor = '#FF6600';
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = '#555';
+                        e.currentTarget.style.borderColor = '#3a3f46';
                       }}
                     />
                   </div>
@@ -552,16 +633,22 @@ export default function Sidebar({
                         cursor: 'pointer',
                         fontSize: '0.9rem',
                         fontFamily: 'Poppins, sans-serif',
-                        color: !unidadeSelecionada ? '#FF6600' : '#aaa',
+                        color: !unidadeSelecionada ? '#FF6600' : '#ccc',
                         fontWeight: !unidadeSelecionada ? 600 : 400,
-                        backgroundColor: !unidadeSelecionada ? '#2a2f36' : 'transparent'
+                        backgroundColor: !unidadeSelecionada ? '#1f2329' : 'transparent',
+                        transition: 'all 0.2s'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#2a2f36';
+                        e.currentTarget.style.backgroundColor = '#1f2329';
+                        e.currentTarget.style.color = '#FF6600';
                       }}
                       onMouseLeave={(e) => {
-                        if (unidadeSelecionada) {
+                        if (!unidadeSelecionada) {
+                          e.currentTarget.style.backgroundColor = '#1f2329';
+                          e.currentTarget.style.color = '#FF6600';
+                        } else {
                           e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = '#ccc';
                         }
                       }}
                     >
@@ -581,16 +668,22 @@ export default function Sidebar({
                           cursor: 'pointer',
                           fontSize: '0.9rem',
                           fontFamily: 'Poppins, sans-serif',
-                          color: unidadeSelecionada === unidade ? '#FF6600' : 'white',
+                          color: unidadeSelecionada === unidade ? '#FF6600' : '#ccc',
                           fontWeight: unidadeSelecionada === unidade ? 600 : 400,
-                          backgroundColor: unidadeSelecionada === unidade ? '#2a2f36' : 'transparent'
+                          backgroundColor: unidadeSelecionada === unidade ? '#1f2329' : 'transparent',
+                          transition: 'all 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#2a2f36';
+                          e.currentTarget.style.backgroundColor = '#1f2329';
+                          e.currentTarget.style.color = '#FF6600';
                         }}
                         onMouseLeave={(e) => {
-                          if (unidadeSelecionada !== unidade) {
+                          if (unidadeSelecionada === unidade) {
+                            e.currentTarget.style.backgroundColor = '#1f2329';
+                            e.currentTarget.style.color = '#FF6600';
+                          } else {
                             e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color = '#ccc';
                           }
                         }}
                       >
@@ -619,5 +712,6 @@ export default function Sidebar({
         </div>
       )}
     </div>
+    </>
   );
 }
