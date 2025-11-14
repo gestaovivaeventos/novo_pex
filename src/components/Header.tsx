@@ -23,7 +23,7 @@ export default function Header() {
             {/* Logo Viva Eventos - Arquivo PNG original */}
             <div style={{ position: 'relative', width: '180px', height: '60px' }}>
               <Image 
-                src="/logo_viva.png" 
+                src="/images/logo_viva.png" 
                 alt="Viva Eventos" 
                 fill
                 style={{ objectFit: 'contain' }}

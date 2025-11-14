@@ -12,8 +12,10 @@ export default function Document() {
         <meta charSet="utf-8" />
         <meta name="description" content="Dashboard do Programa de Excelência (PEX) - Gestão de performance da rede de franquias" />
         <meta name="theme-color" content="#FF6600" />
-        <link rel="icon" type="image/png" href="/logo_viva.png" />
-        <link rel="apple-touch-icon" href="/logo_viva.png" />
+        <link rel="icon" type="image/png" href="/images/logo_viva_V.png" sizes="any" />
+        <link rel="apple-touch-icon" href="/images/logo_viva_V.png" sizes="192x192" />
+        <link rel="icon" type="image/png" href="/images/logo_viva_V.png" sizes="192x192" />
+        <link rel="icon" type="image/png" href="/images/logo_viva_V.png" sizes="512x512" />
         
         {/* Google Fonts - Poppins e Orbitron */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
