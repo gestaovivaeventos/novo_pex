@@ -13,6 +13,7 @@ import Sidebar from '@/components/Sidebar';
 import IndicadorCard from '@/components/IndicadorCard';
 import TabelaResumo from '@/components/TabelaResumo';
 import Footer from '@/components/Footer';
+import GraficoEvolucao from '@/components/GraficoEvolucao';
 
 export default function HomePage() {
   // Buscar dados do Google Sheets
@@ -30,6 +31,9 @@ export default function HomePage() {
 
   // Estado para armazenar pesos dos indicadores por quarter
   const [pesos, setPesos] = useState<Map<string, Map<string, string>>>(new Map());
+
+  // Estado para dados históricos
+  const [dadosHistorico, setDadosHistorico] = useState<any[]>([]);
 
   // Lógica de Filtros usando useMemo para performance
   const listaQuarters = useMemo(() => {
@@ -125,6 +129,27 @@ export default function HomePage() {
     };
 
     carregarPesos();
+  }, []);
+
+  // Carregar dados históricos
+  React.useEffect(() => {
+    const carregarHistorico = async () => {
+      try {
+        const response = await fetch('/api/historico');
+        if (response.ok) {
+          const dados = await response.json();
+          console.log('Dados históricos carregados:', dados.length, 'registros');
+          console.log('Primeiro registro:', dados[0]);
+          setDadosHistorico(dados);
+        } else {
+          console.error('Erro ao carregar histórico:', response.status);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+      }
+    };
+
+    carregarHistorico();
   }, []);
 
   const listaUnidadesFiltradas = useMemo(() => {
@@ -972,6 +997,15 @@ export default function HomePage() {
               nomeColunaConsultor={nomeColunaConsultor}
             />
           </Card>
+
+          {/* Gráfico de Evolução Mensal */}
+          <GraficoEvolucao 
+            dadosHistorico={dadosHistorico}
+            unidadeSelecionada={filtroUnidade}
+            clusterSelecionado={filtroCluster}
+            consultorSelecionado={filtroConsultor}
+            nomeColunaConsultor={nomeColunaConsultor}
+          />
         </div>
       </main>
       <Footer />
