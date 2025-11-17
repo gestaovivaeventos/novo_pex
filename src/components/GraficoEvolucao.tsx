@@ -70,11 +70,9 @@ export default function GraficoEvolucao({
       }));
     }
 
-    // Debug: verificar estrutura dos dados
+    // Debug: verificar estrutura dos dados (logs removidos em produção)
     if (dadosHistorico.length > 0) {
-      console.log('Exemplo de item histórico:', dadosHistorico[0]);
-      console.log('Indicador selecionado:', indicadorSelecionado);
-      console.log('Filtros aplicados:', { unidadeSelecionada, clusterSelecionado, consultorSelecionado });
+      // (logs removidos)
     }
 
     // Aplicar filtros (ano, unidade, cluster, consultor)
@@ -111,7 +109,7 @@ export default function GraficoEvolucao({
       return true;
     });
 
-    console.log('Dados filtrados por ano:', dadosFiltrados.length);
+  // dadosFiltrados.length (debug log removido)
 
     // Criar estrutura com todos os meses
     const dadosPorMes = MESES.map((mes, index) => ({
@@ -160,10 +158,9 @@ export default function GraficoEvolucao({
             }
             
             if (valor !== undefined && !isNaN(valor)) {
-              console.log(`Indicador: ${indicadorSelecionado}, Mês ${mesNumero}: valor ${valor}`);
               dadosPorMes[mesIndex].valor = valor;
             } else {
-              console.log(`Indicador: ${indicadorSelecionado}, Mês ${mesNumero}: valor não encontrado. Colunas disponíveis:`, Object.keys(item));
+              // valor não encontrado (debug log removido)
             }
           }
         }

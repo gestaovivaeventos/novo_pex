@@ -138,8 +138,7 @@ export default function HomePage() {
         const response = await fetch('/api/historico');
         if (response.ok) {
           const dados = await response.json();
-          console.log('Dados históricos carregados:', dados.length, 'registros');
-          console.log('Primeiro registro:', dados[0]);
+          // logs de carregamento removidos
           setDadosHistorico(dados);
         } else {
           console.error('Erro ao carregar histórico:', response.status);
