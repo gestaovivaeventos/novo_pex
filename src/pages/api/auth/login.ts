@@ -48,6 +48,7 @@ async function getAuthorizedUsers(): Promise<Array<{
     // B (índice 1) = nm_unidade (unidade vinculada)
     // D (índice 3) = nome (full name)
     // E (índice 4) = username
+    // F (índice 5) = enabled (TRUE/FALSE - verificar se usuário está ativo)
     // L (índice 11) = nvl_acesso_unidade (0 = franqueado, 1 = franqueadora)
     // C (índice 2) = nm_unidade_principal_desc (unidade principal, não usado mais)
     
@@ -56,6 +57,7 @@ async function getAuthorizedUsers(): Promise<Array<{
       name: string;
       accessLevel: 0 | 1;
       unitNames: Set<string>;
+      enabled: boolean;
     }>();
 
     for (let i = 1; i < lines.length; i++) {
@@ -67,17 +69,22 @@ async function getAuthorizedUsers(): Promise<Array<{
         const unitName = cells[1]?.trim().replace(/^"|"$/g, ''); // Coluna B
         const name = cells[3]?.trim().replace(/^"|"$/g, ''); // Coluna D
         const username = cells[4]?.trim().replace(/^"|"$/g, ''); // Coluna E
+        const enabledStr = cells[5]?.trim().replace(/^"|"$/g, '').toUpperCase(); // Coluna F
         const accessLevelStr = cells[11]?.trim().replace(/^"|"$/g, ''); // Coluna L
+        
+        // Validar se usuário está ativo (enabled = TRUE)
+        const enabled = enabledStr === 'TRUE';
         
         // Validar accessLevel (0 ou 1)
         const accessLevel = accessLevelStr === '1' ? 1 : (accessLevelStr === '0' ? 0 : null);
         
-        if (username && name && accessLevel !== null) {
+        if (username && name && accessLevel !== null && enabled) {
           if (!userMap.has(username)) {
             userMap.set(username, {
               name,
               accessLevel,
-              unitNames: new Set()
+              unitNames: new Set(),
+              enabled
             });
           }
           
