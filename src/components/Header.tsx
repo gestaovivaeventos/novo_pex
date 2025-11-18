@@ -64,7 +64,7 @@ export default function Header() {
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p style={{ color: '#adb5bd', fontSize: '0.875rem', marginBottom: '4px' }}>
-                  Bem-vindo,
+                  Bem-vindo(a),
                 </p>
                 <p style={{ color: '#F8F9FA', fontSize: '1rem', fontWeight: 600 }}>
                   {user.firstName}

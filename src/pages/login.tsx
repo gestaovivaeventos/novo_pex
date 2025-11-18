@@ -53,14 +53,18 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
-        // Salvar token no localStorage
+        if (response.ok && data.success) {
+        // Salvar token e dados de permissão no localStorage
         localStorage.setItem('auth_token', data.token);
         localStorage.setItem('username', data.user.username);
         localStorage.setItem('firstName', data.user.firstName);
+        localStorage.setItem('accessLevel', String(data.user.accessLevel));
+        if (data.user.unitNames && data.user.unitNames.length > 0) {
+          localStorage.setItem('unitNames', JSON.stringify(data.user.unitNames));
+        }
         
         // Redirecionar para dashboard
-        router.push('/resultados');
+        router.push('/ranking');
       } else {
         setFormState(prev => ({
           ...prev,

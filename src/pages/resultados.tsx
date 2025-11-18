@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { withAuth } from '@/utils/auth';
+import { withAuth, usePermissions } from '@/utils/auth';
 import Head from 'next/head';
 import { PieChart, Pie, Cell, ResponsiveContainer, Label } from 'recharts';
 import { useSheetsData } from '@/hooks/useSheetsData';
@@ -15,10 +15,14 @@ import IndicadorCard from '@/components/IndicadorCard';
 import TabelaResumo from '@/components/TabelaResumo';
 import Footer from '@/components/Footer';
 import GraficoEvolucao from '@/components/GraficoEvolucao';
+import { filterDataByPermission, getAvailableUnits } from '@/utils/permissoes';
 
 function ResultadosContent() {
   // Buscar dados do Google Sheets
   const { dados: dadosBrutos, loading, error } = useSheetsData();
+
+  // Buscar permissões do usuário
+  const permissions = usePermissions();
 
   // Estados para os filtros
   const [filtroQuarter, setFiltroQuarter] = useState<string>('');
@@ -38,46 +42,55 @@ function ResultadosContent() {
 
   // Lógica de Filtros usando useMemo para performance
   const listaQuarters = useMemo(() => {
-    if (!dadosBrutos || dadosBrutos.length === 0) return [];
+    if (!dadosBrutos || dadosBrutos.length === 0 || !permissions) return [];
+    
+    // Filtrar por permissões primeiro
+    const dadosFiltrados = filterDataByPermission(dadosBrutos, permissions.user);
     
     // Extrair valores únicos da coluna 'QUARTER' (Coluna V)
-    const quarters = dadosBrutos
+    const quarters = dadosFiltrados
       .map(item => item.QUARTER)
       .filter((value, index, self) => value && self.indexOf(value) === index)
       .sort();
     
     return quarters;
-  }, [dadosBrutos]);
+  }, [dadosBrutos, permissions]);
 
   const listaClusters = useMemo(() => {
-    if (!dadosBrutos || dadosBrutos.length === 0) return [];
+    if (!dadosBrutos || dadosBrutos.length === 0 || !permissions) return [];
     
-    const clusters = dadosBrutos
+    // Filtrar por permissões primeiro
+    const dadosFiltrados = filterDataByPermission(dadosBrutos, permissions.user);
+    
+    const clusters = dadosFiltrados
       .map(item => item.cluster)
       .filter((value, index, self) => value && self.indexOf(value) === index)
       .sort();
     
     return clusters;
-  }, [dadosBrutos]);
+  }, [dadosBrutos, permissions]);
 
   const listaConsultores = useMemo(() => {
-    if (!dadosBrutos || dadosBrutos.length === 0) return [];
+    if (!dadosBrutos || dadosBrutos.length === 0 || !permissions) return [];
+    
+    // Filtrar por permissões primeiro
+    const dadosFiltrados = filterDataByPermission(dadosBrutos, permissions.user);
     
     // Tentar encontrar a coluna correta para consultor
     const possiveisNomesConsultor = ['Consultor', 'CONSULTOR', 'consultor', 'CONSULTOR RESPONSAVEL', 'Consultor Responsável', 'Consultor Responsavel'];
-    let nomeColuna = possiveisNomesConsultor.find(nome => dadosBrutos[0].hasOwnProperty(nome));
+    let nomeColuna = possiveisNomesConsultor.find(nome => dadosFiltrados[0]?.hasOwnProperty(nome));
     
     if (!nomeColuna) {
       return [];
     }
     
-    const consultores = dadosBrutos
+    const consultores = dadosFiltrados
       .map(item => item[nomeColuna])
       .filter((value, index, self) => value && self.indexOf(value) === index)
       .sort();
     
     return consultores;
-  }, [dadosBrutos]);
+  }, [dadosBrutos, permissions]);
   
   // Detectar o nome da coluna do consultor
   React.useEffect(() => {
@@ -153,11 +166,12 @@ function ResultadosContent() {
   }, []);
 
   const listaUnidadesFiltradas = useMemo(() => {
-    if (!dadosBrutos || dadosBrutos.length === 0) return [];
+    if (!dadosBrutos || dadosBrutos.length === 0 || !permissions) return [];
 
-    // Aplicar todos os filtros
-    let dadosFiltrados = dadosBrutos;
+    // Primeiro, filtrar por permissões (se franqueado, só sua unidade)
+    let dadosFiltrados = filterDataByPermission(dadosBrutos, permissions.user);
     
+    // Depois aplicar todos os filtros
     if (filtroQuarter) {
       dadosFiltrados = dadosFiltrados.filter(item => item.QUARTER === filtroQuarter);
     }
@@ -176,25 +190,31 @@ function ResultadosContent() {
       .sort();
 
     return unidades;
-  }, [dadosBrutos, filtroQuarter, filtroCluster, filtroConsultor]);
+  }, [dadosBrutos, filtroQuarter, filtroCluster, filtroConsultor, permissions]);
 
   const itemSelecionado = useMemo(() => {
-    if (!dadosBrutos || !filtroQuarter || !filtroUnidade) return null;
+    if (!dadosBrutos || !filtroQuarter || !filtroUnidade || !permissions) return null;
+
+    // Filtrar por permissões primeiro
+    const dadosFiltrados = filterDataByPermission(dadosBrutos, permissions.user);
 
     // Encontrar o item que corresponde aos dois filtros
-    return dadosBrutos.find(
+    return dadosFiltrados.find(
       item =>
         item.QUARTER === filtroQuarter &&
         item.nm_unidade === filtroUnidade
     );
-  }, [dadosBrutos, filtroQuarter, filtroUnidade]);
+  }, [dadosBrutos, filtroQuarter, filtroUnidade, permissions]);
 
   // Extrair pontuação (média de todos os quarters da unidade)
   const pontuacao = useMemo(() => {
-    if (!filtroUnidade || !dadosBrutos) return 0;
+    if (!filtroUnidade || !dadosBrutos || !permissions) return 0;
+    
+    // Filtrar por permissões primeiro
+    const dadosFiltrados = filterDataByPermission(dadosBrutos, permissions.user);
     
     // Buscar todos os quarters da unidade selecionada
-    const todosQuartersDaUnidade = dadosBrutos.filter(
+    const todosQuartersDaUnidade = dadosFiltrados.filter(
       item => item.nm_unidade === filtroUnidade
     );
 
@@ -212,12 +232,13 @@ function ResultadosContent() {
 
     // Retornar a média
     return somaPontuacoes / todosQuartersDaUnidade.length;
-  }, [filtroUnidade, dadosBrutos]);
+  }, [filtroUnidade, dadosBrutos, permissions]);
 
   // Calcular ranking na rede (posição geral baseada na média de todos os quarters)
   const rankingRedePorMedia = useMemo(() => {
-    if (!dadosBrutos || !filtroUnidade) return { posicao: 0, total: 0 };
+    if (!dadosBrutos || !filtroUnidade || !permissions) return { posicao: 0, total: 0 };
 
+    // Usar dados completos para cálculo real
     // Agrupar por unidade e calcular média de todos os quarters
     const unidadesComMedia = new Map<string, { soma: number; count: number; cluster?: string }>();
 
@@ -247,16 +268,17 @@ function ResultadosContent() {
     const posicao = ranking.findIndex(item => item.unidade === filtroUnidade) + 1;
 
     return { posicao, total: ranking.length };
-  }, [dadosBrutos, filtroUnidade]);
+  }, [dadosBrutos, filtroUnidade, permissions]);
 
   // Calcular ranking no cluster (posição dentro do cluster baseada na média)
   const rankingClusterPorMedia = useMemo(() => {
-    if (!dadosBrutos || !filtroUnidade || !itemSelecionado?.cluster) {
+    if (!dadosBrutos || !filtroUnidade || !itemSelecionado?.cluster || !permissions) {
       return { posicao: 0, total: 0 };
     }
 
     const clusterSelecionado = itemSelecionado.cluster;
 
+    // Usar dados completos para cálculo real
     // Agrupar por unidade e calcular média de todos os quarters
     const unidadesComMedia = new Map<string, { soma: number; count: number; cluster?: string }>();
 
@@ -286,12 +308,13 @@ function ResultadosContent() {
     const posicao = ranking.findIndex(item => item.unidade === filtroUnidade) + 1;
 
     return { posicao, total: ranking.length };
-  }, [dadosBrutos, filtroUnidade, itemSelecionado]);
+  }, [dadosBrutos, filtroUnidade, itemSelecionado, permissions]);
 
   // Calcular ranking na rede (posição geral no quarter)
   const rankingRede = useMemo(() => {
-    if (!dadosBrutos || !filtroQuarter || !itemSelecionado) return { posicao: 0, total: 0 };
+    if (!dadosBrutos || !filtroQuarter || !itemSelecionado || !permissions) return { posicao: 0, total: 0 };
 
+    // Usar dados completos para cálculo real
     // Filtrar apenas unidades do quarter selecionada
     const unidadesDoQuarter = dadosBrutos.filter(item => item.QUARTER === filtroQuarter);
     
@@ -307,14 +330,15 @@ function ResultadosContent() {
     const posicao = ranking.findIndex(item => item.unidade === filtroUnidade) + 1;
 
     return { posicao, total: ranking.length };
-  }, [dadosBrutos, filtroQuarter, filtroUnidade, itemSelecionado]);
+  }, [dadosBrutos, filtroQuarter, filtroUnidade, itemSelecionado, permissions]);
 
   // Calcular ranking no cluster (posição dentro do cluster no quarter)
   const rankingCluster = useMemo(() => {
-    if (!dadosBrutos || !filtroQuarter || !itemSelecionado || !itemSelecionado.cluster) {
+    if (!dadosBrutos || !filtroQuarter || !itemSelecionado || !itemSelecionado.cluster || !permissions) {
       return { posicao: 0, total: 0 };
     }
 
+    // Usar dados completos para cálculo real
     // Filtrar unidades do mesmo quarter E mesmo cluster
     const unidadesDoCluster = dadosBrutos.filter(
       item => item.QUARTER === filtroQuarter && item.cluster === itemSelecionado.cluster
@@ -332,7 +356,7 @@ function ResultadosContent() {
     const posicao = ranking.findIndex(item => item.unidade === filtroUnidade) + 1;
 
     return { posicao, total: ranking.length };
-  }, [dadosBrutos, filtroQuarter, filtroUnidade, itemSelecionado]);
+  }, [dadosBrutos, filtroQuarter, filtroUnidade, itemSelecionado, permissions]);
 
   // Dados para o gráfico de rosca (Gauge)
   const dadosGrafico = [
@@ -342,14 +366,17 @@ function ResultadosContent() {
 
   // Calcular pontuação média por quarter (para os 4 gráficos)
   const pontuacoesPorQuarter = useMemo(() => {
-    if (!dadosBrutos || dadosBrutos.length === 0 || !filtroUnidade) return [];
+    if (!dadosBrutos || dadosBrutos.length === 0 || !filtroUnidade || !permissions) return [];
+
+    // Filtrar por permissões primeiro
+    const dadosFiltrados = filterDataByPermission(dadosBrutos, permissions.user);
 
     // Buscar as 4 quarters da unidade selecionada
     const quarters = ['1', '2', '3', '4'];
     
     return quarters.map(quarter => {
       // Buscar dados da unidade selecionada neste quarter específico
-      const dadosUnidadeNoQuarter = dadosBrutos.find(
+      const dadosUnidadeNoQuarter = dadosFiltrados.find(
         item => item.QUARTER === quarter && item.nm_unidade === filtroUnidade
       );
 
@@ -369,12 +396,13 @@ function ResultadosContent() {
         pontuacao: Math.round(pontuacao * 100) / 100
       };
     });
-  }, [dadosBrutos, filtroUnidade]);
+  }, [dadosBrutos, filtroUnidade, permissions]);
 
   // Calcular performance por indicador (7 indicadores)
   const indicadores = useMemo(() => {
-    if (!itemSelecionado || !dadosBrutos || !filtroQuarter) return [];
+    if (!itemSelecionado || !dadosBrutos || !filtroQuarter || !permissions) return [];
 
+    // Usar dados completos para cálculo real de melhor pontuação
     const cluster = itemSelecionado.cluster;
 
     // Função auxiliar para converter valor para número
@@ -438,8 +466,8 @@ function ResultadosContent() {
     ];
 
     // Filtrar apenas unidades do mesmo quarter
-    const unidadesDoQuarter = dadosBrutos.filter(item => item.QUARTER === filtroQuarter);
-    const unidadesDoCluster = unidadesDoQuarter.filter(item => item.cluster === cluster);
+    const unidadesDoQuarter = dadosBrutos.filter((item: any) => item.QUARTER === filtroQuarter);
+    const unidadesDoCluster = unidadesDoQuarter.filter((item: any) => item.cluster === cluster);
 
     return listaIndicadores.map(ind => {
       // Pontuação da unidade selecionada
@@ -447,24 +475,24 @@ function ResultadosContent() {
 
       // Calcular melhor pontuação da rede neste indicador
       const pontuacoesRede = unidadesDoQuarter
-        .map(item => parseValor(item[ind.coluna]))
-        .filter(val => val > 0);
+        .map((item: any) => parseValor(item[ind.coluna]))
+        .filter((val: any) => val > 0);
       const melhorRede = pontuacoesRede.length > 0 ? Math.max(...pontuacoesRede) : 0;
 
       // Encontrar unidade com melhor pontuação na rede
       const unidadeMelhorRede = unidadesDoQuarter.find(
-        item => parseValor(item[ind.coluna]) === melhorRede
+        (item: any) => parseValor(item[ind.coluna]) === melhorRede
       )?.nm_unidade;
       
       // Calcular melhor pontuação do cluster neste indicador
       const pontuacoesCluster = unidadesDoCluster
-        .map(item => parseValor(item[ind.coluna]))
-        .filter(val => val > 0);
+        .map((item: any) => parseValor(item[ind.coluna]))
+        .filter((val: any) => val > 0);
       const melhorCluster = pontuacoesCluster.length > 0 ? Math.max(...pontuacoesCluster) : 0;
 
       // Encontrar unidade com melhor pontuação no cluster
       const unidadeMelhorCluster = unidadesDoCluster.find(
-        item => parseValor(item[ind.coluna]) === melhorCluster
+        (item: any) => parseValor(item[ind.coluna]) === melhorCluster
       )?.nm_unidade;
 
       // Buscar peso do indicador para o quarter selecionado
@@ -490,7 +518,7 @@ function ResultadosContent() {
         notaGeral: notaComPeso
       };
     });
-  }, [itemSelecionado, dadosBrutos, filtroQuarter, pesos]);
+  }, [itemSelecionado, dadosBrutos, filtroQuarter, pesos, permissions]);
 
   // Calcular Pontuação Bônus (sem comparativos)
   const pontuacaoBonus = useMemo(() => {
@@ -973,32 +1001,37 @@ function ResultadosContent() {
         )}
 
         {/* Seção: Tabela Resumo */}
+        {permissions?.isFranchiser && (
+          <div className="mt-8">
+            <h2 
+              className="text-2xl font-bold mb-6" 
+              style={{ 
+                color: '#adb5bd', 
+                fontFamily: 'Poppins, sans-serif',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                borderBottom: '2px solid #FF6600',
+                paddingBottom: '8px'
+              }}
+            >
+              Tabela Resumo {filtroQuarter && <span style={{ color: '#FF6600' }}>({filtroQuarter === '1' ? '1º' : filtroQuarter === '2' ? '2º' : filtroQuarter === '3' ? '3º' : '4º'} Quarter)</span>}
+            </h2>
+
+            {/* Tabela Resumo - Apenas para Franqueadora */}
+            <Card>
+              <TabelaResumo 
+                dados={dadosBrutos || []} 
+                quarterSelecionado={filtroQuarter}
+                clusterSelecionado={filtroCluster}
+                consultorSelecionado={filtroConsultor}
+                nomeColunaConsultor={nomeColunaConsultor}
+              />
+            </Card>
+          </div>
+        )}
+
+        {/* Gráfico de Evolução Mensal */}
         <div className="mt-8">
-          <h2 
-            className="text-2xl font-bold mb-6" 
-            style={{ 
-              color: '#adb5bd', 
-              fontFamily: 'Poppins, sans-serif',
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              borderBottom: '2px solid #FF6600',
-              paddingBottom: '8px'
-            }}
-          >
-            Tabela Resumo {filtroQuarter && <span style={{ color: '#FF6600' }}>({filtroQuarter === '1' ? '1º' : filtroQuarter === '2' ? '2º' : filtroQuarter === '3' ? '3º' : '4º'} Quarter)</span>}
-          </h2>
-
-          <Card>
-            <TabelaResumo 
-              dados={dadosBrutos || []} 
-              quarterSelecionado={filtroQuarter}
-              clusterSelecionado={filtroCluster}
-              consultorSelecionado={filtroConsultor}
-              nomeColunaConsultor={nomeColunaConsultor}
-            />
-          </Card>
-
-          {/* Gráfico de Evolução Mensal */}
           <GraficoEvolucao 
             dadosHistorico={dadosHistorico}
             unidadeSelecionada={filtroUnidade}

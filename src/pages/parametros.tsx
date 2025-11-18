@@ -1,10 +1,11 @@
 /**
  * Página de Gerenciamento de Parâmetros
  * Permite configurar pesos e metas dos indicadores do PEX
+ * ACESSO RESTRITO: Apenas Franqueadora (accessLevel = 1)
  */
 
 import React, { useState, useEffect } from 'react';
-import { withAuth } from '@/utils/auth';
+import { withAuthAndFranchiser } from '@/utils/auth';
 import Head from 'next/head';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
@@ -2416,4 +2417,4 @@ function ParametrosContent() {
   );
 }
 
-export default withAuth(ParametrosContent);
+export default withAuthAndFranchiser(ParametrosContent);

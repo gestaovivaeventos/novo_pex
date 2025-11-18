@@ -16,11 +16,18 @@ interface LoginResponse {
   user?: {
     username: string;
     firstName: string;
+    accessLevel: 0 | 1;
+    unitNames?: string[];
   };
 }
 
 // Função para buscar usuários autorizados da planilha Google Sheets
-async function getAuthorizedUsers(): Promise<Array<{ username: string; name: string }>> {
+async function getAuthorizedUsers(): Promise<Array<{ 
+  username: string; 
+  name: string; 
+  accessLevel: 0 | 1;
+  unitNames?: string[];
+}>> {
   try {
     const sheetId = process.env.GOOGLE_ACCESS_CONTROL_SHEET_ID;
     if (!sheetId) {
@@ -37,25 +44,79 @@ async function getAuthorizedUsers(): Promise<Array<{ username: string; name: str
     // Parsear CSV simples
     const lines = csvText.split('\n');
     
-    // Encontrar as colunas D (nome - índice 3) e E (username - índice 4)
-    // Assumindo que a primeira linha é header
-    const users: Array<{ username: string; name: string }> = [];
+    // Colunas esperadas:
+    // B (índice 1) = nm_unidade (unidade vinculada)
+    // D (índice 3) = nome (full name)
+    // E (índice 4) = username
+    // L (índice 11) = nvl_acesso_unidade (0 = franqueado, 1 = franqueadora)
+    // C (índice 2) = nm_unidade_principal_desc (unidade principal, não usado mais)
+    
+    // Agrupar por username para coletar todas as unidades
+    const userMap = new Map<string, {
+      name: string;
+      accessLevel: 0 | 1;
+      unitNames: Set<string>;
+    }>();
 
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
 
       const cells = line.split(',');
-      if (cells.length > 4) {
-        // Coluna D é índice 3 (nome), Coluna E é índice 4 (username)
-        const name = cells[3]?.trim().replace(/^"|"$/g, ''); // Remove aspas se houver
-        const username = cells[4]?.trim().replace(/^"|"$/g, '');
+      if (cells.length > 11) {
+        const unitName = cells[1]?.trim().replace(/^"|"$/g, ''); // Coluna B
+        const name = cells[3]?.trim().replace(/^"|"$/g, ''); // Coluna D
+        const username = cells[4]?.trim().replace(/^"|"$/g, ''); // Coluna E
+        const accessLevelStr = cells[11]?.trim().replace(/^"|"$/g, ''); // Coluna L
         
-        if (username && name) {
-          users.push({ username, name });
+        // Validar accessLevel (0 ou 1)
+        const accessLevel = accessLevelStr === '1' ? 1 : (accessLevelStr === '0' ? 0 : null);
+        
+        if (username && name && accessLevel !== null) {
+          if (!userMap.has(username)) {
+            userMap.set(username, {
+              name,
+              accessLevel,
+              unitNames: new Set()
+            });
+          }
+          
+          const user = userMap.get(username)!;
+          // Se for franqueado (0), adicionar a unidade
+          if (accessLevel === 0 && unitName) {
+            user.unitNames.add(unitName);
+          }
         }
       }
     }
+
+    // Converter Map para Array
+    const users: Array<{ 
+      username: string; 
+      name: string; 
+      accessLevel: 0 | 1;
+      unitNames?: string[];
+    }> = [];
+
+    userMap.forEach((user, username) => {
+      const userData: {
+        username: string;
+        name: string;
+        accessLevel: 0 | 1;
+        unitNames?: string[];
+      } = {
+        username,
+        name: user.name,
+        accessLevel: user.accessLevel
+      };
+
+      // Se for franqueado (0) e tiver unidades, adicionar array de unidades
+      if (user.accessLevel === 0 && user.unitNames.size > 0) {
+        userData.unitNames = Array.from(user.unitNames).sort();
+      }
+
+      users.push(userData);
+    });
 
     return users;
   } catch (error) {
@@ -93,8 +154,13 @@ export default async function handler(
     const nameParts = user.name.split(' ');
     const firstName = nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1).toLowerCase();
 
-    // Gerar token com o username exato
-    const token = Buffer.from(username).toString('base64');
+    // Gerar token com as informações do usuário (username:accessLevel:unitNames)
+    const tokenData = JSON.stringify({
+      username: username,
+      accessLevel: user.accessLevel,
+      unitNames: user.unitNames || []
+    });
+    const token = Buffer.from(tokenData).toString('base64');
 
     // Salvar no cookie de sessão
     res.setHeader(
@@ -108,7 +174,9 @@ export default async function handler(
       token,
       user: {
         username: username,
-        firstName: firstName
+        firstName: firstName,
+        accessLevel: user.accessLevel,
+        unitNames: user.unitNames
       }
     });
   } catch (error) {
