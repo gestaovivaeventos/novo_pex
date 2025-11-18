@@ -4,9 +4,12 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
+import bcrypt from 'bcryptjs';
+import { findUserByUsername } from '@/utils/authSheets';
 
 interface LoginRequestBody {
   username: string;
+  password: string;
 }
 
 interface LoginResponse {
@@ -140,10 +143,14 @@ export default async function handler(
     return res.status(405).json({ success: false, message: 'Método não permitido' });
   }
 
-  const { username } = req.body as LoginRequestBody;
+  const { username, password } = req.body as LoginRequestBody;
 
   if (!username || typeof username !== 'string') {
     return res.status(400).json({ success: false, message: 'Username é obrigatório' });
+  }
+
+  if (!password || typeof password !== 'string') {
+    return res.status(400).json({ success: false, message: 'Senha é obrigatória' });
   }
 
   try {
@@ -154,7 +161,21 @@ export default async function handler(
     const user = authorizedUsers.find(u => u.username === username);
 
     if (!user) {
-      return res.status(401).json({ success: false, message: 'Usuário não autorizado' });
+      return res.status(401).json({ success: false, message: 'Usuário ou senha inválidos' });
+    }
+
+    // Buscar dados de autenticação (senha hash) do usuário
+    const authUser = await findUserByUsername(username);
+    
+    if (!authUser) {
+      return res.status(401).json({ success: false, message: 'Usuário ou senha inválidos' });
+    }
+
+    // Validar senha usando bcrypt
+    const passwordMatch = await bcrypt.compare(password, authUser.senhaHash);
+    
+    if (!passwordMatch) {
+      return res.status(401).json({ success: false, message: 'Usuário ou senha inválidos' });
     }
 
     // Extrair primeiro nome e formatar: primeira letra maiúscula, resto minúsculo

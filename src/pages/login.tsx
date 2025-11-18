@@ -9,6 +9,7 @@ import Image from 'next/image';
 
 interface LoginFormState {
   username: string;
+  password: string;
   loading: boolean;
   error: string;
 }
@@ -17,14 +18,17 @@ export default function LoginPage() {
   const router = useRouter();
   const [formState, setFormState] = useState<LoginFormState>({
     username: '',
+    password: '',
     loading: false,
     error: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormState(prev => ({
       ...prev,
-      username: e.target.value,
+      [name]: value,
       error: ''
     }));
   };
@@ -40,6 +44,14 @@ export default function LoginPage() {
       return;
     }
 
+    if (!formState.password.trim()) {
+      setFormState(prev => ({
+        ...prev,
+        error: 'Por favor, informe sua senha'
+      }));
+      return;
+    }
+
     setFormState(prev => ({ ...prev, loading: true, error: '' }));
 
     try {
@@ -48,7 +60,10 @@ export default function LoginPage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username: formState.username }) // Enviar username exato, sem modificações
+        body: JSON.stringify({ 
+          username: formState.username,
+          password: formState.password
+        })
       });
 
       const data = await response.json();
@@ -129,6 +144,7 @@ export default function LoginPage() {
                 </label>
                 <input
                   id="username"
+                  name="username"
                   type="text"
                   value={formState.username}
                   onChange={handleInputChange}
@@ -146,6 +162,53 @@ export default function LoginPage() {
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 />
+              </div>
+
+              {/* Campo Senha */}
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: '#adb5bd' }}
+                >
+                  Senha
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={formState.password}
+                    onChange={handleInputChange}
+                    placeholder="Informe sua senha"
+                    disabled={formState.loading}
+                    className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 pr-12"
+                    style={{
+                      backgroundColor: '#495057',
+                      color: '#F8F9FA'
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.boxShadow = '0 0 0 2px #FF6600';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-semibold transition-colors"
+                    style={{ color: '#adb5bd' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = '#FF6600';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = '#adb5bd';
+                    }}
+                  >
+                    {showPassword ? 'Ocultar' : 'Ver'}
+                  </button>
+                </div>
               </div>
 
               {/* Mensagem de Erro */}
@@ -185,6 +248,23 @@ export default function LoginPage() {
               >
                 {formState.loading ? 'Autenticando...' : 'Entrar'}
               </button>
+
+              {/* Link Redefinir Senha */}
+              <div className="text-center pt-2">
+                <a
+                  href="/reset-password"
+                  className="text-sm font-medium transition-colors"
+                  style={{ color: '#adb5bd' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#FF6600';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = '#adb5bd';
+                  }}
+                >
+                  Esqueceu sua senha?
+                </a>
+              </div>
             </form>
 
             {/* Rodapé */}
