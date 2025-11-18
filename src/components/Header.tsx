@@ -5,8 +5,11 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { useAuth } from '@/utils/auth';
 
 export default function Header() {
+  const { user, logout } = useAuth();
+
   return (
     <div style={{ backgroundColor: '#212529' }}>
       <div className="container mx-auto px-4 py-6">
@@ -16,7 +19,10 @@ export default function Header() {
             padding: '20px 30px',
             borderRadius: '8px',
             boxShadow: '0 4px 10px rgba(255,102,0,0.12)',
-            borderBottom: '3px solid #FF6600'
+            borderBottom: '3px solid #FF6600',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
           }}
         >
           <div className="flex items-center space-x-6">
@@ -52,6 +58,38 @@ export default function Header() {
               </span>
             </div>
           </div>
+
+          {/* Seção de Usuário e Logout */}
+          {user && (
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p style={{ color: '#adb5bd', fontSize: '0.875rem', marginBottom: '4px' }}>
+                  Bem-vindo,
+                </p>
+                <p style={{ color: '#F8F9FA', fontSize: '1rem', fontWeight: 600 }}>
+                  {user.firstName}
+                </p>
+              </div>
+              <button
+                onClick={logout}
+                className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+                style={{
+                  backgroundColor: '#FF6600',
+                  color: 'white',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ff7a33';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#FF6600';
+                }}
+              >
+                Sair
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

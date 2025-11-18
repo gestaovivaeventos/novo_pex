@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { withAuth } from '@/utils/auth';
 import Head from 'next/head';
 import { PieChart, Pie, Cell, ResponsiveContainer, Label } from 'recharts';
 import { useSheetsData } from '@/hooks/useSheetsData';
@@ -15,7 +16,7 @@ import TabelaResumo from '@/components/TabelaResumo';
 import Footer from '@/components/Footer';
 import GraficoEvolucao from '@/components/GraficoEvolucao';
 
-export default function HomePage() {
+function ResultadosContent() {
   // Buscar dados do Google Sheets
   const { dados: dadosBrutos, loading, error } = useSheetsData();
 
@@ -1012,3 +1013,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+export default withAuth(ResultadosContent);

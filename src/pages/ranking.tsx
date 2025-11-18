@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { withAuth } from '@/utils/auth';
 import Head from 'next/head';
 import { useSheetsData } from '@/hooks/useSheetsData';
 import Card from '@/components/Card';
@@ -11,7 +12,7 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
 
-export default function RankingPage() {
+function RankingContent() {
   // Buscar dados do Google Sheets
   const { dados: dadosBrutos, loading, error } = useSheetsData();
 
@@ -1158,3 +1159,5 @@ export default function RankingPage() {
     </div>
   );
 }
+
+export default withAuth(RankingContent);

@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { withAuth } from '@/utils/auth';
 import { useSheetsData } from '@/hooks/useSheetsData';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
@@ -18,7 +19,7 @@ const COLORS = {
   POS_GRADUADO: '#a855f7',      // Roxo
 };
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { dados, loading, error, refetch } = useSheetsData();
 
   // Estado de Loading
@@ -270,3 +271,5 @@ function renderCustomLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent
     </text>
   );
 }
+
+export default withAuth(DashboardContent);

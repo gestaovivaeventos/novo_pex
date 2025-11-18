@@ -7,7 +7,8 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push('/ranking');
+    // Redirecionar para login (primeira página que o usuário vê)
+    router.push('/login');
   }, [router]);
 
   return (

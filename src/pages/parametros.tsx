@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { withAuth } from '@/utils/auth';
 import Head from 'next/head';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
@@ -48,7 +49,7 @@ interface BonusUnidade {
   quarter4: string;
 }
 
-export default function ParametrosPage() {
+function ParametrosContent() {
   const { dados: dadosBrutos } = useSheetsData();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -2414,3 +2415,5 @@ export default function ParametrosPage() {
     </div>
   );
 }
+
+export default withAuth(ParametrosContent);
