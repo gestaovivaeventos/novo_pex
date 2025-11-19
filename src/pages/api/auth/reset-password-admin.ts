@@ -5,7 +5,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import * as bcrypt from 'bcryptjs';
-import { findUserByUsername, updateAllUserPasswordHashes } from '@/utils/authSheets';
+import { findUserByUsername, updateUserPassword } from '@/utils/authSheets';
 
 interface ResetPasswordRequest {
   username: string;
@@ -67,13 +67,13 @@ export default async function handler(
     // Gerar hash da nova senha usando bcrypt
     const newHash = await bcrypt.hash(newPassword, 10);
 
-    // Atualizar hash em TODAS as linhas do usuário na planilha
-    const updated = await updateAllUserPasswordHashes(username, newHash);
+    // Atualizar hash na MESMA linha do usuário (coluna C)
+    const updated = await updateUserPassword(user.rowIndex, newHash);
 
     if (!updated) {
       return res.status(500).json({ 
         success: false, 
-        message: 'Erro ao atualizar senha na planilha. Implementação de API Google Sheets necessária.' 
+        message: 'Erro ao atualizar senha na planilha.' 
       });
     }
 
