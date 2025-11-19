@@ -248,74 +248,51 @@ function RankingContent() {
 
         {/* Conteúdo Principal */}
         <main className="container mx-auto px-4 py-8">
-          {/* Pódio Top 3 */}
+          {/* Pódio Top 3 - Glassmorphism */}
           {rankingFiltrado.length >= 3 && (
             <div style={{ 
               marginBottom: '40px',
-              padding: '20px 20px',
-              background: 'linear-gradient(135deg, #1a1d23 0%, #2a2f36 100%)',
-              borderRadius: '12px',
-              border: '2px solid #FF6600',
-              boxShadow: '0 8px 24px rgba(255, 102, 0, 0.15)',
+              padding: '40px 20px',
+              background: 'linear-gradient(135deg, rgba(30, 30, 40, 0.8) 0%, rgba(40, 40, 50, 0.8) 100%)',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 102, 0, 0.3)',
+              boxShadow: '0 8px 32px rgba(255, 102, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
               position: 'relative',
               overflow: 'hidden'
             }}>
-              {/* GIF decorativo no canto esquerdo */}
+              {/* Background decorativo sutil */}
               <div style={{
                 position: 'absolute',
-                bottom: '10px',
-                left: '10px',
-                width: '350px',
-                height: '350px',
-                backgroundImage: 'url(/images/globinho.gif)',
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'center',
-                pointerEvents: 'none',
-                zIndex: 0
-              }} />
-
-              {/* GIF decorativo no canto direito */}
-              <div style={{
-                position: 'absolute',
-                bottom: '10px',
-                right: '10px',
-                width: '350px',
-                height: '350px',
-                backgroundImage: 'url(/images/globinho.gif)',
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'center',
-                pointerEvents: 'none',
-                zIndex: 0
+                top: '0',
+                left: '0',
+                right: '0',
+                bottom: '0',
+                background: 'radial-gradient(circle at top right, rgba(255, 102, 0, 0.05) 0%, transparent 50%)',
+                pointerEvents: 'none'
               }} />
 
               <h2 style={{
                 textAlign: 'center',
                 color: '#FF6600',
-                fontSize: '1.5rem',
+                fontSize: '1.8rem',
                 fontWeight: 700,
                 fontFamily: 'Orbitron, Poppins, sans-serif',
-                marginBottom: '30px',
+                marginBottom: '50px',
                 textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                textShadow: '0 2px 8px rgba(255, 102, 0, 0.3)',
+                letterSpacing: '0.15em',
+                textShadow: '0 4px 12px rgba(255, 102, 0, 0.2)',
                 position: 'relative',
-                zIndex: 1,
-                background: 'linear-gradient(to right, transparent 0%, rgba(255, 102, 0, 0.15) 20%, rgba(255, 102, 0, 0.15) 80%, transparent 100%)',
-                padding: '16px 0',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 102, 0, 0.3)',
-                backdropFilter: 'blur(5px)'
+                zIndex: 1
               }}>
-                🏆 Top 3 Performance Rede Viva
+                🏆 TOP 3 PERFORMANCE REDE VIVA
               </h2>
 
               <div style={{
                 display: 'flex',
                 alignItems: 'flex-end',
                 justifyContent: 'center',
-                gap: '20px',
+                gap: '24px',
                 flexWrap: 'wrap',
                 position: 'relative',
                 zIndex: 1
@@ -328,72 +305,77 @@ function RankingContent() {
                   order: 1
                 }}>
                   <div style={{
-                    width: '180px',
-                    padding: '20px',
-                    background: 'linear-gradient(to bottom, #5a6573 0%, #4a5563 50%, #3a4553 100%)',
-                    borderRadius: '12px 12px 0 0',
+                    width: '200px',
+                    padding: '28px 24px',
+                    background: 'linear-gradient(135deg, rgba(100, 120, 140, 0.3) 0%, rgba(80, 100, 120, 0.2) 100%)',
+                    borderRadius: '16px 16px 0 0',
                     textAlign: 'center',
-                    boxShadow: '0 -4px 16px rgba(192, 192, 192, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.1)',
-                    border: '2px solid #C0C0C0',
+                    boxShadow: '0 8px 24px rgba(192, 192, 192, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2), inset 0 -1px 1px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid rgba(192, 192, 192, 0.4)',
                     borderBottom: 'none',
-                    minHeight: '160px',
+                    minHeight: '180px',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    backdropFilter: 'blur(20px)'
                   }}>
                     <div>
-                      <div style={{ fontSize: '3rem', marginBottom: '8px' }}>🥈</div>
+                      {/* Ícone de medalha SVG - Prata */}
+                      <div style={{ fontSize: '3rem', marginBottom: '12px' }}>
+                        <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="14" r="6" fill="url(#silver-gradient)" stroke="#C0C0C0" strokeWidth="0.5"/>
+                          <path d="M9 8L12 2L15 8" stroke="#C0C0C0" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <text x="12" y="16.5" fontSize="6" fontWeight="bold" fill="#2a2f36" textAnchor="middle" fontFamily="Arial">2</text>
+                          <defs>
+                            <linearGradient id="silver-gradient" x1="12" y1="8" x2="12" y2="20">
+                              <stop offset="0%" stopColor="#E8E8E8"/>
+                              <stop offset="50%" stopColor="#C0C0C0"/>
+                              <stop offset="100%" stopColor="#A0A0A0"/>
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                      </div>
                       <div style={{
                         color: '#F8F9FA',
-                        fontSize: '1rem',
+                        fontSize: '1.1rem',
                         fontWeight: 700,
                         fontFamily: 'Poppins, sans-serif',
-                        marginBottom: '8px',
+                        marginBottom: '6px',
                         lineHeight: '1.3'
                       }}>
                         {rankingFiltrado[1].unidade}
                       </div>
                       <div style={{
-                        color: '#C0C0C0',
-                        fontSize: '0.8rem',
+                        color: '#B0B8C0',
+                        fontSize: '0.85rem',
                         fontFamily: 'Poppins, sans-serif',
                         marginBottom: '4px'
                       }}>
                         {rankingFiltrado[1].cluster || '-'}
                       </div>
                     </div>
-                    <div style={{
-                      background: 'linear-gradient(to right, rgba(192, 192, 192, 0.1), rgba(192, 192, 192, 0.3), rgba(192, 192, 192, 0.1))',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      marginTop: '12px'
-                    }}>
-                      <div style={{
-                        color: '#C0C0C0',
-                        fontSize: '1.4rem',
-                        fontWeight: 700,
-                        fontFamily: 'Orbitron, sans-serif'
-                      }}>
-                        {rankingFiltrado[1].media.toFixed(2)}
-                      </div>
-                    </div>
                   </div>
                   <div style={{
-                    width: '180px',
-                    height: '50px',
-                    background: 'linear-gradient(to bottom, #C0C0C0 0%, #A8A8A8 50%, #909090 100%)',
+                    width: '200px',
+                    height: '80px',
+                    background: 'linear-gradient(135deg, rgba(192, 192, 192, 0.4) 0%, rgba(160, 160, 160, 0.3) 100%)',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 700,
-                    fontSize: '1.5rem',
-                    color: '#1a1d23',
+                    fontSize: '1.4rem',
+                    color: '#F8F9FA',
                     fontFamily: 'Orbitron, sans-serif',
-                    boxShadow: '0 4px 12px rgba(192, 192, 192, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.3)',
-                    border: '2px solid #C0C0C0',
-                    borderTop: 'none'
+                    boxShadow: '0 6px 20px rgba(192, 192, 192, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.15)',
+                    border: '1px solid rgba(192, 192, 192, 0.4)',
+                    borderTop: 'none',
+                    backdropFilter: 'blur(20px)'
                   }}>
-                    2
+                    <div style={{ fontSize: '0.8rem', color: '#B0B8C0', marginBottom: '4px' }}>2º Lugar</div>
+                    <div style={{ fontSize: '1.6rem', fontWeight: 800 }}>
+                      {rankingFiltrado[1].media.toFixed(2)}
+                    </div>
                   </div>
                 </div>
 
@@ -405,45 +387,57 @@ function RankingContent() {
                   order: 2
                 }}>
                   <div style={{
-                    width: '200px',
-                    padding: '24px',
-                    background: 'linear-gradient(to bottom, #FFD700 0%, #FFC700 25%, #FFB700 50%, #FFA700 75%, #FF9700 100%)',
-                    borderRadius: '12px 12px 0 0',
+                    position: 'absolute',
+                    top: '-20px',
+                    fontSize: '2.5rem'
+                  }}>
+                    👑
+                  </div>
+                  <div style={{
+                    width: '240px',
+                    padding: '32px 28px',
+                    background: 'linear-gradient(135deg, rgba(255, 150, 80, 0.35) 0%, rgba(255, 102, 0, 0.25) 100%)',
+                    borderRadius: '16px 16px 0 0',
                     textAlign: 'center',
-                    boxShadow: '0 -8px 24px rgba(255, 215, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3)',
-                    border: '3px solid #FFD700',
+                    boxShadow: '0 12px 32px rgba(255, 102, 0, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.25), inset 0 -1px 1px rgba(0, 0, 0, 0.1)',
+                    border: '1.5px solid rgba(255, 150, 80, 0.5)',
                     borderBottom: 'none',
-                    minHeight: '240px',
+                    minHeight: '220px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
+                    backdropFilter: 'blur(20px)',
                     position: 'relative'
                   }}>
-                    <div style={{
-                      position: 'absolute',
-                      top: '-15px',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      fontSize: '2rem'
-                    }}>
-                      👑
-                    </div>
-                    <div style={{ marginTop: '20px' }}>
-                      <div style={{ fontSize: '4rem', marginBottom: '12px' }}>🥇</div>
+                    <div style={{ marginTop: '30px' }}>
+                      {/* Ícone de medalha SVG - Ouro */}
+                      <div style={{ fontSize: '4rem', marginBottom: '12px' }}>
+                        <svg width="90" height="90" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="14" r="6" fill="url(#gold-gradient)" stroke="#FFD700" strokeWidth="0.5"/>
+                          <path d="M9 8L12 2L15 8" stroke="#FFD700" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <text x="12" y="16.5" fontSize="6" fontWeight="bold" fill="#1a1d23" textAnchor="middle" fontFamily="Arial">1</text>
+                          <defs>
+                            <linearGradient id="gold-gradient" x1="12" y1="8" x2="12" y2="20">
+                              <stop offset="0%" stopColor="#FFD700"/>
+                              <stop offset="50%" stopColor="#FFC700"/>
+                              <stop offset="100%" stopColor="#FFB700"/>
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                      </div>
                       <div style={{
-                        color: '#1a1d23',
-                        fontSize: '1.2rem',
+                        color: '#F8F9FA',
+                        fontSize: '1.25rem',
                         fontWeight: 800,
                         fontFamily: 'Poppins, sans-serif',
                         marginBottom: '8px',
-                        lineHeight: '1.3',
-                        textShadow: '0 1px 2px rgba(255, 255, 255, 0.3)'
+                        lineHeight: '1.3'
                       }}>
                         {rankingFiltrado[0].unidade}
                       </div>
                       <div style={{
-                        color: '#3a4553',
-                        fontSize: '0.85rem',
+                        color: '#E0B000',
+                        fontSize: '0.9rem',
                         fontFamily: 'Poppins, sans-serif',
                         fontWeight: 600,
                         marginBottom: '4px'
@@ -451,41 +445,28 @@ function RankingContent() {
                         {rankingFiltrado[0].cluster || '-'}
                       </div>
                     </div>
-                    <div style={{
-                      background: 'linear-gradient(to right, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2))',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      marginTop: '16px',
-                      boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.1)'
-                    }}>
-                      <div style={{
-                        color: '#1a1d23',
-                        fontSize: '1.8rem',
-                        fontWeight: 800,
-                        fontFamily: 'Orbitron, sans-serif',
-                        textShadow: '0 1px 2px rgba(255, 255, 255, 0.3)'
-                      }}>
-                        {rankingFiltrado[0].media.toFixed(2)}
-                      </div>
-                    </div>
                   </div>
                   <div style={{
-                    width: '200px',
-                    height: '60px',
-                    background: 'linear-gradient(to bottom, #FFD700 0%, #FFC700 50%, #FFB700 100%)',
+                    width: '240px',
+                    height: '100px',
+                    background: 'linear-gradient(135deg, rgba(255, 150, 80, 0.4) 0%, rgba(255, 102, 0, 0.3) 100%)',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 800,
-                    fontSize: '2rem',
-                    color: '#1a1d23',
+                    fontSize: '1.6rem',
+                    color: '#F8F9FA',
                     fontFamily: 'Orbitron, sans-serif',
-                    boxShadow: '0 6px 16px rgba(255, 215, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3)',
-                    border: '3px solid #FFD700',
+                    boxShadow: '0 8px 24px rgba(255, 102, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
+                    border: '1.5px solid rgba(255, 150, 80, 0.5)',
                     borderTop: 'none',
-                    textShadow: '0 1px 2px rgba(255, 255, 255, 0.3)'
+                    backdropFilter: 'blur(20px)'
                   }}>
-                    1
+                    <div style={{ fontSize: '0.75rem', color: '#FFB800', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>1º Lugar</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 900 }}>
+                      {rankingFiltrado[0].media.toFixed(2)}
+                    </div>
                   </div>
                 </div>
 
@@ -497,72 +478,77 @@ function RankingContent() {
                   order: 3
                 }}>
                   <div style={{
-                    width: '180px',
-                    padding: '18px',
-                    background: 'linear-gradient(to bottom, #CD7F32 0%, #BD6F22 50%, #AD5F12 100%)',
-                    borderRadius: '12px 12px 0 0',
+                    width: '200px',
+                    padding: '28px 24px',
+                    background: 'linear-gradient(135deg, rgba(140, 100, 60, 0.3) 0%, rgba(120, 80, 50, 0.2) 100%)',
+                    borderRadius: '16px 16px 0 0',
                     textAlign: 'center',
-                    boxShadow: '0 -4px 16px rgba(205, 127, 50, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.1)',
-                    border: '2px solid #CD7F32',
+                    boxShadow: '0 8px 24px rgba(205, 127, 50, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2), inset 0 -1px 1px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid rgba(205, 127, 50, 0.4)',
                     borderBottom: 'none',
-                    minHeight: '90px',
+                    minHeight: '180px',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    backdropFilter: 'blur(20px)'
                   }}>
                     <div>
-                      <div style={{ fontSize: '2.8rem', marginBottom: '6px' }}>🥉</div>
+                      {/* Ícone de medalha SVG - Bronze */}
+                      <div style={{ fontSize: '3rem', marginBottom: '12px' }}>
+                        <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="14" r="6" fill="url(#bronze-gradient)" stroke="#CD7F32" strokeWidth="0.5"/>
+                          <path d="M9 8L12 2L15 8" stroke="#CD7F32" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <text x="12" y="16.5" fontSize="6" fontWeight="bold" fill="#2a2f36" textAnchor="middle" fontFamily="Arial">3</text>
+                          <defs>
+                            <linearGradient id="bronze-gradient" x1="12" y1="8" x2="12" y2="20">
+                              <stop offset="0%" stopColor="#E8A875"/>
+                              <stop offset="50%" stopColor="#CD7F32"/>
+                              <stop offset="100%" stopColor="#B8722C"/>
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                      </div>
                       <div style={{
                         color: '#F8F9FA',
-                        fontSize: '0.95rem',
+                        fontSize: '1.1rem',
                         fontWeight: 700,
                         fontFamily: 'Poppins, sans-serif',
                         marginBottom: '6px',
-                        lineHeight: '1.2'
+                        lineHeight: '1.3'
                       }}>
                         {rankingFiltrado[2].unidade}
                       </div>
                       <div style={{
-                        color: '#FFD7B3',
-                        fontSize: '0.78rem',
+                        color: '#D4A574',
+                        fontSize: '0.85rem',
                         fontFamily: 'Poppins, sans-serif',
-                        marginBottom: '3px'
+                        marginBottom: '4px'
                       }}>
                         {rankingFiltrado[2].cluster || '-'}
                       </div>
                     </div>
-                    <div style={{
-                      background: 'linear-gradient(to right, rgba(255, 215, 179, 0.1), rgba(255, 215, 179, 0.3), rgba(255, 215, 179, 0.1))',
-                      padding: '9px',
-                      borderRadius: '7px',
-                      marginTop: '10px'
-                    }}>
-                      <div style={{
-                        color: '#FFD7B3',
-                        fontSize: '1.3rem',
-                        fontWeight: 700,
-                        fontFamily: 'Orbitron, sans-serif'
-                      }}>
-                        {rankingFiltrado[2].media.toFixed(2)}
-                      </div>
-                    </div>
                   </div>
                   <div style={{
-                    width: '180px',
-                    height: '32px',
-                    background: 'linear-gradient(to bottom, #CD7F32 0%, #BD6F22 50%, #AD5F12 100%)',
+                    width: '200px',
+                    height: '80px',
+                    background: 'linear-gradient(135deg, rgba(205, 127, 50, 0.4) 0%, rgba(180, 100, 40, 0.3) 100%)',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 700,
                     fontSize: '1.4rem',
-                    color: '#1a1d23',
+                    color: '#F8F9FA',
                     fontFamily: 'Orbitron, sans-serif',
-                    boxShadow: '0 4px 12px rgba(205, 127, 50, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.2)',
-                    border: '2px solid #CD7F32',
-                    borderTop: 'none'
+                    boxShadow: '0 6px 20px rgba(205, 127, 50, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.15)',
+                    border: '1px solid rgba(205, 127, 50, 0.4)',
+                    borderTop: 'none',
+                    backdropFilter: 'blur(20px)'
                   }}>
-                    3
+                    <div style={{ fontSize: '0.8rem', color: '#D4A574', marginBottom: '4px' }}>3º Lugar</div>
+                    <div style={{ fontSize: '1.6rem', fontWeight: 800 }}>
+                      {rankingFiltrado[2].media.toFixed(2)}
+                    </div>
                   </div>
                 </div>
               </div>
