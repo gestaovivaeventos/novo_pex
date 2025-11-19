@@ -1,29 +1,22 @@
 /**
  * Módulo de Autenticação com Google Sheets
- * Gerencia busca e atualização de usuários na aba BASE MV
+ * Gerencia busca e atualização de usuários na aba SENHAS
+ * Aba SENHAS: B=username, C=Senha_Hash, D=Token_Reset_Admin
  */
 
-export interface AcessoUser {
+export interface PasswordUser {
   username: string;
   senhaHash: string;
-  tokenResetAdmin: string; // Novo campo para token
-  nmAcessoAdmin: boolean;
-  nmAcessoGestor: boolean;
+  tokenResetAdmin: string;
   rowIndex: number;
-}
-
-export interface UserPasswordUpdate {
-  rowIndex: number;
-  username: string;
 }
 
 /**
- * Busca um usuário na aba BASE MV pelo username
- * Retorna a primeira ocorrência encontrada com o token de reset
+ * Busca um usuário na aba SENHAS pelo username
  * @param username - Username do usuário
- * @returns AcessoUser com rowIndex e tokenResetAdmin ou null se não encontrado
+ * @returns PasswordUser com rowIndex e tokenResetAdmin ou null se não encontrado
  */
-export async function findUserByUsername(username: string): Promise<AcessoUser | null> {
+export async function findUserByUsername(username: string): Promise<PasswordUser | null> {
   try {
     const sheetId = process.env.GOOGLE_ACCESS_CONTROL_SHEET_ID;
     if (!sheetId) {
@@ -31,149 +24,129 @@ export async function findUserByUsername(username: string): Promise<AcessoUser |
       return null;
     }
 
-    // URL para ler a planilha em formato CSV
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
+    // Obter todos os gids das abas usando Google Sheets API
+    const { google } = require('googleapis');
+    const serviceAccountBase64 = process.env.GOOGLE_SERVICE_ACCOUNT_BASE64;
+    
+    if (!serviceAccountBase64) {
+      console.error('GOOGLE_SERVICE_ACCOUNT_BASE64 não configurado');
+      return null;
+    }
 
+    const serviceAccountJson = JSON.parse(
+      Buffer.from(serviceAccountBase64, 'base64').toString('utf-8')
+    );
+
+    const auth = new google.auth.GoogleAuth({
+      credentials: serviceAccountJson,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    // Obter metadados da planilha para encontrar o gid da aba SENHAS
+    const metadata = await sheets.spreadsheets.get({
+      spreadsheetId: sheetId
+    });
+
+    let senhasGid: number | null = null;
+    for (const sheet of metadata.data.sheets || []) {
+      if (sheet.properties?.title?.toUpperCase() === 'SENHAS') {
+        senhasGid = sheet.properties.sheetId;
+        console.log(`✅ Encontrou aba SENHAS com gid=${senhasGid}`);
+        break;
+      }
+    }
+
+    if (senhasGid === null) {
+      console.error('❌ Aba SENHAS não encontrada na planilha');
+      return null;
+    }
+
+    // Agora buscar os dados da aba SENHAS usando o gid correto
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${senhasGid}`;
     const response = await fetch(csvUrl);
-    const csvText = await response.text();
+    
+    if (!response.ok) {
+      console.error(`❌ Erro ao baixar CSV da aba SENHAS: ${response.status}`);
+      return null;
+    }
 
-    // Parsear CSV
+    const csvText = await response.text();
     const lines = csvText.split('\n');
+    const headerLine = lines[0].split(',');
     
-    // Colunas esperadas na aba BASE MV:
-    // E (índice 4) = username
-    // F (índice 5) = Senha_Hash
-    // G (índice 6) = nmAcessoAdmin (1 ou 0)
-    // H (índice 7) = nmAcessoGestor (1 ou 0)
-    // P (índice 15) = Senha_Hash (para atualizar múltiplas linhas)
-    // Q (índice 16) = Token_Reset_Admin
+    console.log(`[SENHAS] Headers = ${headerLine.join(' | ')}`);
+
+    // Encontrar os índices das colunas
+    const usernameIdx = headerLine.findIndex(h => h.trim().toLowerCase().includes('username'));
+    const senhaIdx = headerLine.findIndex(h => h.trim().toLowerCase().includes('senha'));
+    const tokenIdx = headerLine.findIndex(h => h.trim().toLowerCase().includes('token_reset'));
     
+    console.log(`[SENHAS] Indices - username=${usernameIdx}, senha=${senhaIdx}, token=${tokenIdx}`);
+
+    if (usernameIdx === -1 || senhaIdx === -1) {
+      console.error('❌ Colunas requeridas (username, senha) não encontradas na aba SENHAS');
+      return null;
+    }
+
+    // Procurar o usuário nesta aba
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
 
       const cells = line.split(',');
-      if (cells.length > 16) {
-        const currentUsername = cells[4]?.trim().replace(/^"|"$/g, ''); // Coluna E
-        
-        if (currentUsername === username) {
-          // Tentar primeira a coluna P (Senha_Hash - atualizada), depois F como fallback
-          let senhaHash = cells[15]?.trim().replace(/^"|"$/g, '') || ''; // Coluna P (nova)
-          if (!senhaHash) {
-            senhaHash = cells[5]?.trim().replace(/^"|"$/g, '') || ''; // Coluna F (antiga, fallback)
-          }
-          
-          const tokenResetAdmin = cells[16]?.trim().replace(/^"|"$/g, '') || ''; // Coluna Q (token dinâmico)
-          
-          // Verificar admin/gestor
-          const nmAcessoAdminStr = cells[6]?.trim().replace(/^"|"$/g, '') || '0'; // Coluna G
-          const nmAcessoGestorStr = cells[7]?.trim().replace(/^"|"$/g, '') || '0'; // Coluna H
-          
-          const nmAcessoAdmin = nmAcessoAdminStr === '1' || nmAcessoAdminStr === 'TRUE';
-          const nmAcessoGestor = nmAcessoGestorStr === '1' || nmAcessoGestorStr === 'TRUE';
+      const currentUsername = cells[usernameIdx]?.trim().replace(/^"|"$/g, '');
+      
+      if (currentUsername === username) {
+        const senhaHash = cells[senhaIdx]?.trim().replace(/^"|"$/g, '') || '';
+        const tokenResetAdmin = cells[tokenIdx]?.trim().replace(/^"|"$/g, '') || '';
+        const rowIndex = i + 1; // Linha no Google Sheets (1-indexed)
 
-          return {
-            username,
-            senhaHash,
-            tokenResetAdmin,
-            nmAcessoAdmin,
-            nmAcessoGestor,
-            rowIndex: i + 1 // Linha do Google Sheets (1 = header, 2 = primeira linha de dados)
-          };
-        }
+        console.log(`✅ Usuário ${username} encontrado na linha ${rowIndex}`);
+        console.log(`Token: ${tokenResetAdmin}, Senha: ${senhaHash ? '(hash presente)' : '(vazio)'}`);
+
+        return {
+          username,
+          senhaHash,
+          tokenResetAdmin,
+          rowIndex
+        };
       }
     }
-
-    return null;
-  } catch (error) {
-    console.error('Erro ao buscar usuário da planilha:', error);
-    return null;
-  }
-}
-
-/**
- * Busca TODAS as linhas de um usuário na aba BASE MV
- * Retorna array com índices de todas as linhas onde o usuário aparece
- * @param username - Username do usuário
- * @returns Array de UserPasswordUpdate com todos os rowIndex do usuário
- */
-export async function findAllUserRows(username: string): Promise<UserPasswordUpdate[]> {
-  try {
-    const sheetId = process.env.GOOGLE_ACCESS_CONTROL_SHEET_ID;
-    if (!sheetId) {
-      console.error('GOOGLE_ACCESS_CONTROL_SHEET_ID não configurado');
-      return [];
-    }
-
-    // URL para ler a planilha em formato CSV
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
-
-    const response = await fetch(csvUrl);
-    const csvText = await response.text();
-
-    // Parsear CSV
-    const lines = csvText.split('\n');
-    const userRows: UserPasswordUpdate[] = [];
     
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-
-      const cells = line.split(',');
-      if (cells.length > 4) {
-        const currentUsername = cells[4]?.trim().replace(/^"|"$/g, ''); // Coluna E
-
-        if (currentUsername === username) {
-          userRows.push({
-            rowIndex: i + 1, // Linha do Google Sheets (1 = header, 2 = primeira linha de dados)
-            username
-          });
-        }
-      }
-    }
-
-    return userRows;
+    console.warn(`❌ Usuário ${username} não encontrado na aba SENHAS`);
+    return null;
   } catch (error) {
-    console.error('Erro ao buscar todas as linhas do usuário:', error);
-    return [];
+    console.error('Erro ao buscar usuário:', error);
+    return null;
   }
 }
 
 /**
- * Atualiza o hash da senha em TODAS as linhas de um usuário na coluna P
- * @param username - Username do usuário
+ * Atualiza o hash da senha na linha específica do usuário
+ * @param rowIndex - Linha no Google Sheets onde atualizar
  * @param newHash - Novo hash da senha (criptografado com bcrypt)
  * @returns true se atualizado com sucesso, false caso contrário
  */
-export async function updateAllUserPasswordHashes(username: string, newHash: string): Promise<boolean> {
+export async function updateUserPassword(rowIndex: number, newHash: string): Promise<boolean> {
   try {
-    // Buscar todas as linhas do usuário
-    const userRows = await findAllUserRows(username);
-    
-    if (userRows.length === 0) {
-      console.warn(`Nenhuma linha encontrada para o usuário: ${username}`);
-      return false;
-    }
-
-    console.log(`Atualizando senha para ${username} em ${userRows.length} linha(s)`);
-
-    // Implementação com Google Sheets API v4
     const { google } = require('googleapis');
     
     const sheetId = process.env.GOOGLE_ACCESS_CONTROL_SHEET_ID;
     const serviceAccountBase64 = process.env.GOOGLE_SERVICE_ACCOUNT_BASE64;
     
     if (!sheetId || !serviceAccountBase64) {
-      console.error('GOOGLE_ACCESS_CONTROL_SHEET_ID ou GOOGLE_SERVICE_ACCOUNT_BASE64 não configurados');
+      console.error('Variáveis de ambiente não configuradas');
       return false;
     }
 
-    // Decodificar a conta de serviço
+    // Decodificar Service Account
     const serviceAccountJson = JSON.parse(
       Buffer.from(serviceAccountBase64, 'base64').toString('utf-8')
     );
 
-    // Autenticar com Service Account
+    // Autenticar
     const auth = new google.auth.GoogleAuth({
       credentials: serviceAccountJson,
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
@@ -181,42 +154,36 @@ export async function updateAllUserPasswordHashes(username: string, newHash: str
 
     const sheets = google.sheets({ version: 'v4', auth });
 
-    // Preparar updates em batch para melhor performance
-    const updates: any[] = [];
-    for (const row of userRows) {
-      // Usar apóstrofos para escapar nomes de abas com espaços
-      updates.push({
-        range: `'BASE MV'!P${row.rowIndex}`,
-        values: [[newHash]]
-      });
-    }
+    // Atualizar coluna C (Senha_Hash) na linha específica
+    const range = `'SENHAS'!C${rowIndex}`;
+    console.log(`📝 Atualizando senha na linha ${rowIndex} (range: ${range})`);
 
-    // Executar updates em batch
-    const response = await sheets.spreadsheets.values.batchUpdate({
+    const response = await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
+      range: range,
+      valueInputOption: 'RAW',
       requestBody: {
-        valueInputOption: 'RAW',
-        data: updates
+        values: [[newHash]]
       }
     });
 
     if (response.status === 200) {
-      console.log(`✅ [SHEETS] Senha atualizada para ${username} em ${userRows.length} linha(s)`);
+      console.log(`✅ Senha atualizada com sucesso na linha ${rowIndex}`);
       return true;
     } else {
-      console.error('Erro ao atualizar senhas via API:', response.statusText);
+      console.error('Erro ao atualizar senha:', response.statusText);
       return false;
     }
   } catch (error) {
-    console.error('Erro ao atualizar senhas de todas as linhas:', error);
+    console.error('Erro ao atualizar senha:', error);
     return false;
   }
 }
 
 /**
- * Valida o token de reset contra o token armazenado na coluna Q
+ * Valida o token de reset contra o token armazenado na coluna D
  * @param providedToken - Token fornecido pelo usuário
- * @param storedToken - Token armazenado na planilha (coluna Q)
+ * @param storedToken - Token armazenado na planilha (coluna D)
  * @returns true se os tokens correspondem
  */
 export function validateResetToken(providedToken: string, storedToken: string): boolean {
@@ -225,15 +192,13 @@ export function validateResetToken(providedToken: string, storedToken: string): 
 }
 
 /**
- * Verifica se um usuário tem acesso de administrador
+ * Interface legada para compatibilidade
  */
-export function isAdmin(user: AcessoUser): boolean {
-  return user.nmAcessoAdmin === true;
-}
-
-/**
- * Verifica se um usuário tem acesso de gestor
- */
-export function isGestor(user: AcessoUser): boolean {
-  return user.nmAcessoGestor === true;
+export interface AcessoUser {
+  username: string;
+  senhaHash: string;
+  tokenResetAdmin: string;
+  nmAcessoAdmin: boolean;
+  nmAcessoGestor: boolean;
+  rowIndex: number;
 }

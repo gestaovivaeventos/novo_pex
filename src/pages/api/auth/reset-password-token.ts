@@ -11,7 +11,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import bcrypt from 'bcryptjs';
 import { 
   findUserByUsername, 
-  updateAllUserPasswordHashes,
+  updateUserPassword,
   validateResetToken 
 } from '@/utils/authSheets';
 
@@ -34,6 +34,8 @@ export default async function handler(
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 
+  console.log('[RESET-PASSWORD] Requisição iniciada');
+
   const { username, resetToken, newPassword } = req.body as ResetPasswordRequest;
 
   // Validações básicas
@@ -52,38 +54,45 @@ export default async function handler(
   }
 
   try {
+    console.log(`[RESET-PASSWORD] Buscando usuário: ${username}`);
     // Buscar usuário e token da planilha (coluna Q)
     const user = await findUserByUsername(username);
     
     if (!user) {
+      console.log(`[RESET-PASSWORD] Usuário ${username} não encontrado`);
       return res.status(401).json({
         success: false,
         message: 'Usuário ou token inválido'
       });
     }
 
+    console.log(`[RESET-PASSWORD] Usuário encontrado, validando token...`);
     // Validar token contra o token dinâmico da planilha
     if (!validateResetToken(resetToken, user.tokenResetAdmin)) {
+      console.log(`[RESET-PASSWORD] Token inválido para ${username}`);
       return res.status(401).json({
         success: false,
         message: 'Token de redefinição inválido ou expirado'
       });
     }
 
+    console.log(`[RESET-PASSWORD] Token válido, hashando nova senha...`);
     // Hash da nova senha com bcrypt (10 rounds)
     const newHash = await bcrypt.hash(newPassword, 10);
 
-    // Atualizar senha em TODAS as linhas do usuário (coluna P)
-    const updateSuccess = await updateAllUserPasswordHashes(username, newHash);
+    console.log(`[RESET-PASSWORD] Atualizando senha na linha ${user.rowIndex}...`);
+    // Atualizar senha NA MESMA LINHA onde encontrou o usuário (coluna C)
+    const updateSuccess = await updateUserPassword(user.rowIndex, newHash);
 
     if (!updateSuccess) {
+      console.log(`[RESET-PASSWORD] Erro ao atualizar senha`);
       return res.status(500).json({
         success: false,
         message: 'Erro ao atualizar senha. Tente novamente.'
       });
     }
 
-    console.log(`✅ Senha redefinida com sucesso para usuário: ${username}`);
+    console.log(`✅ Senha atualizada na linha ${user.rowIndex} para ${username}`);
 
     return res.status(200).json({
       success: true,
