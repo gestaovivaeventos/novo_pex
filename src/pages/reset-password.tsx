@@ -137,274 +137,367 @@ export default function ResetPasswordPage() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="min-h-screen" style={{ backgroundColor: '#212529' }}>
-        {/* Container Central */}
-        <div className="flex items-center justify-center min-h-screen px-4">
-          <div
-            className="w-full max-w-md rounded-lg shadow-2xl p-8 md:p-10"
-            style={{ backgroundColor: '#343A40', border: '1px solid #555' }}
-          >
-            {/* Logo/Header */}
-            <div className="text-center mb-8">
-              <div
-                className="text-4xl font-bold mb-2"
-                style={{ color: '#FF6600' }}
-              >
-                PEX
-              </div>
-              <h1
-                className="text-2xl font-bold mb-1"
-                style={{ color: '#F8F9FA' }}
-              >
-                Redefinir Senha
-              </h1>
-              <p style={{ color: '#adb5bd' }} className="text-sm">
-                Digite o token que você recebeu do administrador
-              </p>
-            </div>
+      <style jsx global>{`
+        html, body {
+          height: 100%;
+          margin: 0;
+          font-family: 'Poppins', sans-serif;
+          background-color: #212529;
+          background-image: url('/images/capa_site.png');
+          background-size: cover;
+          background-position: center;
+          background-attachment: fixed;
+          color: #F8F9FA;
+          overflow: hidden;
+        }
+      `}</style>
+
+      <style jsx>{`
+        .page-title {
+          font-family: 'Orbitron', sans-serif;
+          font-weight: 700;
+          font-size: 2em;
+          background: linear-gradient(180deg, #ffffff, #e9e9e9);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          text-shadow: 0 4px 8px rgba(0,0,0,0.7);
+          margin-bottom: 20px;
+          text-transform: uppercase;
+          letter-spacing: 1.5px;
+          text-align: center;
+          max-width: 900px;
+          line-height: 1.2;
+        }
+
+        .page-subtitle {
+          font-size: 1.2em;
+          font-weight: 600;
+          color: #F8F9FA;
+          margin-bottom: 8px;
+        }
+
+        .page-description {
+          font-size: 0.85em;
+          color: #adb5bd;
+          margin-bottom: 20px;
+        }
+
+        .access-control {
+          background-color: rgba(33, 37, 41, 0.95);
+          padding: 25px 25px;
+          border-radius: 10px;
+          border: 1px solid #495057;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          max-width: 420px;
+          width: 100%;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-group {
+          width: 100%;
+        }
+
+        .form-label {
+          display: block;
+          font-size: 0.85em;
+          font-weight: 600;
+          color: #adb5bd;
+          margin-bottom: 5px;
+        }
+
+        .form-input {
+          background-color: #212529;
+          border: 1px solid #495057;
+          color: #F8F9FA;
+          border-radius: 6px;
+          padding: 10px 12px;
+          font-size: 0.95em;
+          width: 100%;
+          letter-spacing: 0.5px;
+          box-sizing: border-box;
+        }
+
+        .form-input::placeholder {
+          color: #6c757d;
+          font-size: 0.9em;
+        }
+
+        .form-input:focus {
+          outline: none;
+          box-shadow: 0 0 0 2px #FF6600;
+          border-color: #FF6600;
+        }
+
+        .form-helper {
+          font-size: 0.85em;
+          color: #6c757d;
+          margin-top: 5px;
+        }
+
+        .password-toggle {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: #adb5bd;
+          cursor: pointer;
+          font-size: 0.85em;
+          padding: 0;
+          transition: color 0.2s ease;
+        }
+
+        .password-toggle:hover {
+          color: #FF6600;
+        }
+
+        .password-wrapper {
+          position: relative;
+        }
+
+        .error-message {
+          color: #dc3545;
+          font-weight: 600;
+          background-color: rgba(220, 53, 69, 0.1);
+          border: 1px solid #dc3545;
+          border-radius: 6px;
+          padding: 12px;
+          text-align: center;
+        }
+
+        .success-message {
+          color: #6fd97c;
+          font-weight: 600;
+          background-color: rgba(40, 167, 69, 0.1);
+          border: 1px solid #28a745;
+          border-radius: 6px;
+          padding: 12px;
+          text-align: center;
+        }
+
+        .form-content button[type="submit"] {
+          background: linear-gradient(180deg, #ff8a33 0%, #FF6600 50%, #D35400 100%);
+          color: #212529;
+          border: 1px solid #A6300C;
+          border-top-color: #ff9c4d;
+          border-radius: 6px;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+          text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+          padding: 12px 25px;
+          font-weight: bold;
+          cursor: pointer;
+          font-size: 1.1em;
+          letter-spacing: 0.5px;
+          transition: all 0.2s ease;
+          width: 100%;
+        }
+
+        .form-content button[type="submit"]:hover:not(:disabled) {
+          filter: brightness(1.1);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 18px rgba(0,0,0,0.45);
+        }
+
+        .form-content button[type="submit"]:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .back-link {
+          margin-top: 15px;
+          text-align: center;
+        }
+
+        .back-link a {
+          font-size: 0.9em;
+          color: #adb5bd;
+          text-decoration: none;
+          transition: color 0.2s ease;
+        }
+
+        .back-link a:hover {
+          color: #FF6600;
+        }
+
+        #reset-password-screen {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          padding: 20px;
+        }
+
+        #reset-password-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+        }
+
+        .form-content {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          width: 100%;
+        }
+
+        .token-input {
+          font-family: monospace;
+          font-size: 0.95em;
+        }
+
+        .password-input {
+          padding-right: 45px;
+        }
+
+        .company-logo {
+          height: 60px;
+          width: auto;
+          margin-top: 20px;
+        }
+
+        footer {
+          position: fixed;
+          bottom: 16px;
+          left: 16px;
+          background: none;
+          border: none;
+          padding: 0;
+          margin: 0;
+          font-size: 0.75rem;
+          color: #6c757d;
+          font-family: 'Poppins', sans-serif;
+          letter-spacing: 0.3px;
+          z-index: 100;
+          opacity: 0.8;
+        }
+      `}</style>
+
+      <div id="reset-password-screen">
+        <div id="reset-password-container">
+          <h1 className="page-title">PEX - PROGRAMA DE<br/>EXCELÊNCIA REDE VIVA</h1>
+          <section className="access-control">
+            <h2 className="page-subtitle">Redefinir Senha</h2>
+            <p className="page-description">Digite o token que você recebeu do administrador</p>
 
             {/* Mensagem de Sucesso */}
             {formState.success && (
-              <div
-                className="p-4 rounded-lg text-sm mb-6 text-center"
-                style={{
-                  backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                  border: '1px solid #28a745',
-                  color: '#6fd97c'
-                }}
-              >
+              <div className="success-message">
                 ✓ Senha redefinida com sucesso! Redirecionando para login...
               </div>
             )}
 
             {/* Formulário */}
             {!formState.success && (
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="form-content">
                 {/* Campo Username */}
-                <div>
-                  <label
-                    htmlFor="username"
-                    className="block text-sm font-semibold mb-2"
-                    style={{ color: '#adb5bd' }}
-                  >
-                    Usuário
-                  </label>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="username">Usuário</label>
                   <input
                     id="username"
                     name="username"
                     type="text"
+                    className="form-input"
                     value={formState.username}
                     onChange={handleInputChange}
                     placeholder="Informe seu usuário"
                     disabled={formState.loading}
-                    className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2"
-                    style={{
-                      backgroundColor: '#495057',
-                      color: '#F8F9FA'
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.boxShadow = '0 0 0 2px #FF6600';
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
+                    maxLength={20}
                   />
                 </div>
 
                 {/* Campo Token de Redefinição */}
-                <div>
-                  <label
-                    htmlFor="resetToken"
-                    className="block text-sm font-semibold mb-2"
-                    style={{ color: '#adb5bd' }}
-                  >
-                    Token de Redefinição
-                  </label>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="resetToken">Token de Redefinição</label>
                   <input
                     id="resetToken"
                     name="resetToken"
                     type="text"
+                    className="form-input token-input"
                     value={formState.resetToken}
                     onChange={handleInputChange}
                     placeholder="Cole o token fornecido pelo admin"
                     disabled={formState.loading}
-                    className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 font-mono text-sm"
-                    style={{
-                      backgroundColor: '#495057',
-                      color: '#F8F9FA'
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.boxShadow = '0 0 0 2px #FF6600';
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
                   />
-                  <p style={{ color: '#6c757d' }} className="text-xs mt-2">
-                    O token deve ser fornecido por um administrador
-                  </p>
+                  <p className="form-helper">O token deve ser fornecido por um administrador</p>
                 </div>
 
                 {/* Campo Nova Senha */}
-                <div>
-                  <label
-                    htmlFor="newPassword"
-                    className="block text-sm font-semibold mb-2"
-                    style={{ color: '#adb5bd' }}
-                  >
-                    Nova Senha
-                  </label>
-                  <div className="relative">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="newPassword">Nova Senha</label>
+                  <div className="password-wrapper">
                     <input
                       id="newPassword"
                       name="newPassword"
                       type={showPassword ? 'text' : 'password'}
+                      className="form-input password-input"
                       value={formState.newPassword}
                       onChange={handleInputChange}
                       placeholder="Mínimo 8 caracteres"
                       disabled={formState.loading}
-                      className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 pr-12"
-                      style={{
-                        backgroundColor: '#495057',
-                        color: '#F8F9FA'
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.boxShadow = '0 0 0 2px #FF6600';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
                     />
-                    <button
-                      type="button"
+                    <span
+                      className="password-toggle"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-semibold transition-colors"
-                      style={{ color: '#adb5bd' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#FF6600';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = '#adb5bd';
-                      }}
                     >
                       {showPassword ? 'Ocultar' : 'Ver'}
-                    </button>
+                    </span>
                   </div>
                 </div>
 
                 {/* Campo Confirmar Senha */}
-                <div>
-                  <label
-                    htmlFor="confirmPassword"
-                    className="block text-sm font-semibold mb-2"
-                    style={{ color: '#adb5bd' }}
-                  >
-                    Confirmar Senha
-                  </label>
-                  <div className="relative">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="confirmPassword">Confirmar Senha</label>
+                  <div className="password-wrapper">
                     <input
                       id="confirmPassword"
                       name="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
+                      className="form-input password-input"
                       value={formState.confirmPassword}
                       onChange={handleInputChange}
                       placeholder="Confirme a nova senha"
                       disabled={formState.loading}
-                      className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 pr-12"
-                      style={{
-                        backgroundColor: '#495057',
-                        color: '#F8F9FA'
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.boxShadow = '0 0 0 2px #FF6600';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
                     />
-                    <button
-                      type="button"
+                    <span
+                      className="password-toggle"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-semibold transition-colors"
-                      style={{ color: '#adb5bd' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#FF6600';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = '#adb5bd';
-                      }}
                     >
                       {showConfirmPassword ? 'Ocultar' : 'Ver'}
-                    </button>
+                    </span>
                   </div>
                 </div>
 
                 {/* Mensagem de Erro */}
                 {formState.error && (
-                  <div
-                    className="p-3 rounded-lg text-sm"
-                    style={{
-                      backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                      border: '1px solid #dc3545',
-                      color: '#ff6b6b'
-                    }}
-                  >
-                    {formState.error}
-                  </div>
+                  <div className="error-message">{formState.error}</div>
                 )}
 
                 {/* Botão de Redefinir */}
-                <button
-                  type="submit"
-                  disabled={formState.loading}
-                  className="w-full py-3 rounded-lg font-semibold text-white transition-all duration-200 mt-6"
-                  style={{
-                    backgroundColor: formState.loading ? '#666' : '#FF6600',
-                    opacity: formState.loading ? 0.8 : 1,
-                    cursor: formState.loading ? 'not-allowed' : 'pointer'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!formState.loading) {
-                      e.currentTarget.style.backgroundColor = '#ff7a33';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!formState.loading) {
-                      e.currentTarget.style.backgroundColor = '#FF6600';
-                    }
-                  }}
-                >
+                <button type="submit" disabled={formState.loading}>
                   {formState.loading ? 'Redefinindo...' : 'Redefinir Senha'}
                 </button>
               </form>
             )}
 
             {/* Link para Login */}
-            <div className="mt-8 text-center">
-              <a
-                href="/login"
-                className="text-sm font-medium transition-colors"
-                style={{ color: '#adb5bd', cursor: 'pointer', display: 'inline-block' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#FF6600';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#adb5bd';
-                }}
-              >
-                Voltar para Login
-              </a>
+            <div className="back-link">
+              <a href="/login">Voltar para Login</a>
             </div>
-
-            {/* Rodapé */}
-            <div className="mt-8 text-center">
-              <p style={{ color: '#6c757d' }} className="text-xs">
-                © 2025 Gestão Viva Eventos. Todos os direitos reservados.
-              </p>
-            </div>
-          </div>
+          </section>
+          
+          <img className="company-logo" src="/images/logo_viva.png" alt="Logo Viva Eventos" />
         </div>
       </div>
+
+      <footer>
+        📊 Developed by Gestão de Dados - VIVA Eventos Brasil 2025
+      </footer>
     </>
   );
 }
