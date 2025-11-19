@@ -72,18 +72,24 @@ export default function Header() {
               </div>
               <button
                 onClick={logout}
-                className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+                className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300"
                 style={{
-                  backgroundColor: '#FF6600',
-                  color: 'white',
-                  border: 'none',
-                  cursor: 'pointer'
+                  background: 'linear-gradient(135deg, #FF8A33 0%, #FF6600 50%, #D35400 100%)',
+                  color: '#000',
+                  border: '2px solid #FF6600',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontFamily: 'Poppins, sans-serif',
+                  boxShadow: '0 8px 16px rgba(255, 102, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.2)',
+                  letterSpacing: '0.3px'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#ff7a33';
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 10px 20px rgba(255, 102, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 0 rgba(0, 0, 0, 0.2)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FF6600';
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 8px 16px rgba(255, 102, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.2)';
                 }}
               >
                 Sair
