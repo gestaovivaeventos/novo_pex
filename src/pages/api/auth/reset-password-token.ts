@@ -55,7 +55,7 @@ export default async function handler(
 
   try {
     console.log(`[RESET-PASSWORD] Buscando usuário: ${username}`);
-    // Buscar usuário e token da planilha (coluna Q)
+    // Buscar usuário e tokens da planilha
     const user = await findUserByUsername(username);
     
     if (!user) {
@@ -67,8 +67,8 @@ export default async function handler(
     }
 
     console.log(`[RESET-PASSWORD] Usuário encontrado, validando token...`);
-    // Validar token contra o token dinâmico da planilha
-    if (!validateResetToken(resetToken, user.tokenResetAdmin)) {
+    // Validar token de forma condicional baseado no estado da senha
+    if (!validateResetToken(resetToken, user.senhaHash, user.tokenResetAdmin, user.tokenPrimeiraSenha)) {
       console.log(`[RESET-PASSWORD] Token inválido para ${username}`);
       return res.status(401).json({
         success: false,

@@ -8,6 +8,7 @@ export interface PasswordUser {
   username: string;
   senhaHash: string;
   tokenResetAdmin: string;
+  tokenPrimeiraSenha: string;
   rowIndex: number;
 }
 
@@ -82,8 +83,9 @@ export async function findUserByUsername(username: string): Promise<PasswordUser
     const usernameIdx = headerLine.findIndex(h => h.trim().toLowerCase().includes('username'));
     const senhaIdx = headerLine.findIndex(h => h.trim().toLowerCase().includes('senha'));
     const tokenIdx = headerLine.findIndex(h => h.trim().toLowerCase().includes('token_reset'));
+    const tokenPrimeiraSenhaIdx = headerLine.findIndex(h => h.trim().toLowerCase().includes('token_primeira_senha'));
     
-    console.log(`[SENHAS] Indices - username=${usernameIdx}, senha=${senhaIdx}, token=${tokenIdx}`);
+    console.log(`[SENHAS] Indices - username=${usernameIdx}, senha=${senhaIdx}, token=${tokenIdx}, tokenPrimeiraSenha=${tokenPrimeiraSenhaIdx}`);
 
     if (usernameIdx === -1 || senhaIdx === -1) {
       console.error('❌ Colunas requeridas (username, senha) não encontradas na aba SENHAS');
@@ -101,15 +103,18 @@ export async function findUserByUsername(username: string): Promise<PasswordUser
       if (currentUsername === username) {
         const senhaHash = cells[senhaIdx]?.trim().replace(/^"|"$/g, '') || '';
         const tokenResetAdmin = cells[tokenIdx]?.trim().replace(/^"|"$/g, '') || '';
+        const tokenPrimeiraSenha = cells[tokenPrimeiraSenhaIdx]?.trim().replace(/^"|"$/g, '') || '';
         const rowIndex = i + 1; // Linha no Google Sheets (1-indexed)
 
         console.log(`✅ Usuário ${username} encontrado na linha ${rowIndex}`);
-        console.log(`Token: ${tokenResetAdmin}, Senha: ${senhaHash ? '(hash presente)' : '(vazio)'}`);
+        console.log(`Senha: ${senhaHash ? '(preenchida)' : '(vazia)'}`);
+        console.log(`Token Reset: ${tokenResetAdmin}, Token Primeira Senha: ${tokenPrimeiraSenha}`);
 
         return {
           username,
           senhaHash,
           tokenResetAdmin,
+          tokenPrimeiraSenha,
           rowIndex
         };
       }
@@ -181,14 +186,28 @@ export async function updateUserPassword(rowIndex: number, newHash: string): Pro
 }
 
 /**
- * Valida o token de reset contra o token armazenado na coluna D
+ * Valida o token contra o token apropriado baseado no estado da senha
  * @param providedToken - Token fornecido pelo usuário
- * @param storedToken - Token armazenado na planilha (coluna D)
- * @returns true se os tokens correspondem
+ * @param senhaHash - Hash da senha (vazio se é primeira vez)
+ * @param tokenResetAdmin - Token para redefinição de senha (coluna D)
+ * @param tokenPrimeiraSenha - Token para primeira senha (coluna E)
+ * @returns true se o token é válido para o estado atual
  */
-export function validateResetToken(providedToken: string, storedToken: string): boolean {
-  // Validação simples: verificar correspondência exata
-  return providedToken === storedToken && storedToken.length > 0;
+export function validateResetToken(
+  providedToken: string,
+  senhaHash: string,
+  tokenResetAdmin: string,
+  tokenPrimeiraSenha: string
+): boolean {
+  // Se senha está vazia, usar token de primeira senha
+  if (!senhaHash || senhaHash.trim() === '') {
+    console.log('[VALIDACAO] Senha vazia - validando com Token_primeira_senha');
+    return providedToken === tokenPrimeiraSenha && tokenPrimeiraSenha.length > 0;
+  }
+
+  // Se senha está preenchida, usar token de reset
+  console.log('[VALIDACAO] Senha preenchida - validando com Token_Reset_Admin');
+  return providedToken === tokenResetAdmin && tokenResetAdmin.length > 0;
 }
 
 /**
