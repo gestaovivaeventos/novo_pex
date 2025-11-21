@@ -356,10 +356,11 @@ function RankingContent() {
                       </div>
                       <div style={{
                         color: '#B0B8C0',
-                        fontSize: '0.8rem',
-                        fontFamily: 'Poppins, sans-serif'
+                        fontSize: '0.75rem',
+                        fontFamily: 'Poppins, sans-serif',
+                        marginBottom: '8px'
                       }}>
-                        PÓS GRADUADO
+                        {rankingFiltrado[1].cluster || '-'}
                       </div>
                     </div>
 
@@ -440,10 +441,11 @@ function RankingContent() {
                       </div>
                       <div style={{
                         color: '#FFD700',
-                        fontSize: '0.85rem',
-                        fontFamily: 'Poppins, sans-serif'
+                        fontSize: '0.75rem',
+                        fontFamily: 'Poppins, sans-serif',
+                        marginBottom: '8px'
                       }}>
-                        PÓS GRADUADO
+                        {rankingFiltrado[0].cluster || '-'}
                       </div>
                     </div>
 
@@ -522,10 +524,11 @@ function RankingContent() {
                       </div>
                       <div style={{
                         color: '#D4A574',
-                        fontSize: '0.8rem',
-                        fontFamily: 'Poppins, sans-serif'
+                        fontSize: '0.75rem',
+                        fontFamily: 'Poppins, sans-serif',
+                        marginBottom: '8px'
                       }}>
-                        PÓS GRADUADO
+                        {rankingFiltrado[2].cluster || '-'}
                       </div>
                     </div>
 
