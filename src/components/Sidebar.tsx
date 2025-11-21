@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { usePermissions } from '@/utils/auth';
+import { Trophy, BarChart3, Settings } from 'lucide-react';
 
 interface SidebarProps {
   quarters: string[];
@@ -161,162 +162,70 @@ export default function Sidebar({
       {!isCollapsed && (
         <div style={{ padding: '20px', paddingTop: '70px', flex: 1 }}>
           {/* Botões de Navegação */}
-          <div style={{ marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <nav style={{ marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {/* Botão Ranking */}
             <button
               onClick={() => router.push('/ranking')}
+              className={`
+                group flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
+                ${currentPage === 'ranking' 
+                  ? 'bg-orange-500/10 border border-orange-500 text-orange-500' 
+                  : 'text-gray-400 border border-transparent hover:bg-white/5'}
+              `}
               style={{
-                padding: '14px 16px',
-                background: currentPage === 'ranking' 
-                  ? 'linear-gradient(135deg, #FF8A33 0%, #FF6600 50%, #D35400 100%)'
-                  : 'linear-gradient(135deg, #3a3f46 0%, #2a2f36 100%)',
-                color: currentPage === 'ranking' ? '#000' : '#e0e0e0',
-                border: currentPage === 'ranking' ? '2px solid #FF6600' : 'none',
-                borderRadius: '8px',
-                fontSize: '0.95rem',
-                fontWeight: currentPage === 'ranking' ? 700 : 600,
-                cursor: 'pointer',
                 fontFamily: 'Poppins, sans-serif',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                textAlign: 'left',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                boxShadow: currentPage === 'ranking'
-                  ? '0 8px 16px rgba(255, 102, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.2)'
-                  : '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-                letterSpacing: currentPage === 'ranking' ? '0.3px' : '0'
-              }}
-              onMouseEnter={(e) => {
-                if (currentPage !== 'ranking') {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #4a4f56 0%, #3a3f46 100%)';
-                  e.currentTarget.style.transform = 'translateX(4px)';
-                  e.currentTarget.style.boxShadow = '0 6px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12)';
-                  e.currentTarget.style.color = '#fff';
-                } else {
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                  e.currentTarget.style.boxShadow = '0 10px 20px rgba(255, 102, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 0 rgba(0, 0, 0, 0.2)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (currentPage !== 'ranking') {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #3a3f46 0%, #2a2f36 100%)';
-                  e.currentTarget.style.transform = 'translateX(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.color = '#e0e0e0';
-                } else {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = '0 8px 16px rgba(255, 102, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.2)';
-                }
+                fontSize: '0.95rem',
+                fontWeight: currentPage === 'ranking' ? 600 : 500,
+                cursor: 'pointer'
               }}
             >
-              <span style={{ fontSize: '1.2rem' }}>🏆</span>
-              Ranking
+              <Trophy size={20} strokeWidth={currentPage === 'ranking' ? 2.5 : 2} />
+              <span>Ranking</span>
             </button>
 
+            {/* Botão Resultados */}
             <button
               onClick={() => router.push('/resultados')}
+              className={`
+                group flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
+                ${currentPage === 'resultados' 
+                  ? 'bg-orange-500/10 border border-orange-500 text-orange-500' 
+                  : 'text-gray-400 border border-transparent hover:bg-white/5'}
+              `}
               style={{
-                padding: '14px 16px',
-                background: currentPage === 'resultados' 
-                  ? 'linear-gradient(135deg, #FF8A33 0%, #FF6600 50%, #D35400 100%)'
-                  : 'linear-gradient(135deg, #3a3f46 0%, #2a2f36 100%)',
-                color: currentPage === 'resultados' ? '#000' : '#e0e0e0',
-                border: currentPage === 'resultados' ? '2px solid #FF6600' : 'none',
-                borderRadius: '8px',
-                fontSize: '0.95rem',
-                fontWeight: currentPage === 'resultados' ? 700 : 600,
-                cursor: 'pointer',
                 fontFamily: 'Poppins, sans-serif',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                textAlign: 'left',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                boxShadow: currentPage === 'resultados'
-                  ? '0 8px 16px rgba(255, 102, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.2)'
-                  : '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-                letterSpacing: currentPage === 'resultados' ? '0.3px' : '0'
-              }}
-              onMouseEnter={(e) => {
-                if (currentPage !== 'resultados') {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #4a4f56 0%, #3a3f46 100%)';
-                  e.currentTarget.style.transform = 'translateX(4px)';
-                  e.currentTarget.style.boxShadow = '0 6px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12)';
-                  e.currentTarget.style.color = '#fff';
-                } else {
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                  e.currentTarget.style.boxShadow = '0 10px 20px rgba(255, 102, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 0 rgba(0, 0, 0, 0.2)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (currentPage !== 'resultados') {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #3a3f46 0%, #2a2f36 100%)';
-                  e.currentTarget.style.transform = 'translateX(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.color = '#e0e0e0';
-                } else {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = '0 8px 16px rgba(255, 102, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.2)';
-                }
+                fontSize: '0.95rem',
+                fontWeight: currentPage === 'resultados' ? 600 : 500,
+                cursor: 'pointer'
               }}
             >
-              <span style={{ fontSize: '1.2rem' }}>📊</span>
-              Resultados
+              <BarChart3 size={20} strokeWidth={currentPage === 'resultados' ? 2.5 : 2} />
+              <span>Resultados</span>
             </button>
 
+            {/* Botão Gerenciamento de Parâmetros */}
             {permissions?.isFranchiser && (
               <button
                 onClick={() => router.push('/parametros')}
+                className={`
+                  group flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
+                  ${currentPage === 'parametros' 
+                    ? 'bg-orange-500/10 border border-orange-500 text-orange-500' 
+                    : 'text-gray-400 border border-transparent hover:bg-white/5'}
+                `}
                 style={{
-                  padding: '14px 16px',
-                  background: currentPage === 'parametros' 
-                    ? 'linear-gradient(135deg, #FF8A33 0%, #FF6600 50%, #D35400 100%)'
-                    : 'linear-gradient(135deg, #3a3f46 0%, #2a2f36 100%)',
-                  color: currentPage === 'parametros' ? '#000' : '#e0e0e0',
-                  border: currentPage === 'parametros' ? '2px solid #FF6600' : 'none',
-                  borderRadius: '8px',
-                  fontSize: '0.95rem',
-                  fontWeight: currentPage === 'parametros' ? 700 : 600,
-                  cursor: 'pointer',
                   fontFamily: 'Poppins, sans-serif',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  textAlign: 'left',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  boxShadow: currentPage === 'parametros'
-                    ? '0 8px 16px rgba(255, 102, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.2)'
-                    : '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-                  letterSpacing: currentPage === 'parametros' ? '0.3px' : '0'
-                }}
-                onMouseEnter={(e) => {
-                  if (currentPage !== 'parametros') {
-                    e.currentTarget.style.background = 'linear-gradient(135deg, #4a4f56 0%, #3a3f46 100%)';
-                    e.currentTarget.style.transform = 'translateX(4px)';
-                    e.currentTarget.style.boxShadow = '0 6px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12)';
-                    e.currentTarget.style.color = '#fff';
-                  } else {
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                    e.currentTarget.style.boxShadow = '0 10px 20px rgba(255, 102, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 0 rgba(0, 0, 0, 0.2)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (currentPage !== 'parametros') {
-                    e.currentTarget.style.background = 'linear-gradient(135deg, #3a3f46 0%, #2a2f36 100%)';
-                    e.currentTarget.style.transform = 'translateX(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)';
-                    e.currentTarget.style.color = '#e0e0e0';
-                  } else {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = '0 8px 16px rgba(255, 102, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.2)';
-                  }
+                  fontSize: '0.95rem',
+                  fontWeight: currentPage === 'parametros' ? 600 : 500,
+                  cursor: 'pointer',
+                  justifyContent: 'flex-start'
                 }}
               >
-                <span style={{ fontSize: '1.2rem' }}>⚙️</span>
-                Gerenciamento de Parâmetros
+                <Settings size={24} strokeWidth={currentPage === 'parametros' ? 2.5 : 2} style={{ flexShrink: 0 }} />
+                <span style={{ textAlign: 'left' }}>Gerenciamento de Parâmetros</span>
               </button>
             )}
-          </div>
+          </nav>
 
           {/* Título e Filtros - apenas na página de resultados */}
           {currentPage === 'resultados' && (
