@@ -33,13 +33,14 @@ O PEX é um programa anual (de conviva a conviva) que visa reconhecer e premiar 
 
 **Principais características:**
 
-- ✅ Sistema de autenticação seguro com Firebase
 - ✅ Dashboard interativo com visualização de indicadores em tempo real
 - ✅ Cálculo automático de pontuações por onda e ranking geral
 - ✅ Gestão de clusters e metas personalizadas
 - ✅ Sistema de bonificações e reconhecimento
 - ✅ Exportação de relatórios e histórico de performance
 - ✅ Interface responsiva e otimizada para múltiplos dispositivos
+- ✅ Design moderno com tema escuro corporativo e identidade visual Viva
+- ✅ Integração com Google Sheets para dados dinâmicos
 
 ## ✨ Funcionalidades
 
@@ -103,12 +104,14 @@ O PEX é um programa anual (de conviva a conviva) que visa reconhecer e premiar 
 
 ### Componentes Visuais
 
-- **Header**: Barra superior com logo e título do programa
-- **Sidebar**: Navegação recolhível com filtros contextuais (Quarter, Unidade, Cluster, Consultor)
+- **Header**: Barra superior com logo Viva e título do programa, botão de logout
+- **Sidebar**: Navegação recolhível com filtros contextuais (Quarter, Unidade, Cluster, Consultor) e ícones lucide-react em estilo SaaS Enterprise
+- **Cards de Ranking (Top 3)**: Glassmorphism cards com cores ouro/prata/bronze para as 3 primeiras posições
 - **Cards de Indicadores**: Exibição de pontuação, comparativos e peso do indicador
-- **Tabela Resumida**: Listagem de unidades com todas as pontuações, ordenação por coluna
-- **Footer**: Crédito de desenvolvimento na base de todas as páginas
+- **Tabela Resumida**: Listagem de unidades com todas as pontuações, ordenação por coluna e exportação para Excel
+- **Footer**: Crédito discreto de desenvolvimento na base de todas as páginas
 - **Favicon**: Logo Viva como favicon para branding em abas do navegador
+- **Tipografia**: Orbitron para títulos (impactante), Poppins para corpo de texto
 
 ### Recursos de Otimização
 
@@ -121,13 +124,11 @@ O PEX é um programa anual (de conviva a conviva) que visa reconhecer e premiar 
 ## 🛠 Tecnologias
 
 - **Frontend**: Next.js 14, React 18, TypeScript 5.3
-- **Estilização**: Tailwind CSS 3.3, PostCSS
-- **Backend**: Next.js API Routes, Firebase Admin
-- **Banco de Dados**: Firebase Firestore (Conta Principal Corporativa)
-- **Autenticação**: Firebase Authentication
-- **Integração**: Google Sheets API (googleapis)
+- **Estilização**: Tailwind CSS 3.3, PostCSS, styled-jsx
+- **Ícones**: Lucide React (para ícones SVG monochromáticos)
+- **Backend**: Next.js API Routes
+- **Banco de Dados**: Google Sheets API (origem de dados)
 - **Exportação**: XLSX para relatórios em Excel
-- **Analytics**: Google Analytics 4
 - **Hospedagem**: Vercel
 - **Ferramentas**: Git, npm, ESLint
 
@@ -138,7 +139,7 @@ O PEX é um programa anual (de conviva a conviva) que visa reconhecer e premiar 
 - Node.js v18 ou superior
 - npm v9 ou superior
 - Acesso ao repositório GitHub da organização
-- Credenciais do Firebase (consultar Cofre Central de Credenciais)
+- Credenciais do Google Sheets (consultar documentação de configuração)
 
 ### Passos
 
@@ -155,8 +156,8 @@ O PEX é um programa anual (de conviva a conviva) que visa reconhecer e premiar 
 
 3. **Configure as variáveis de ambiente**
    - Copie o arquivo `.env.example` para `.env`
-   - Consulte o Cofre Central de Credenciais para obter as chaves
-   - Preencha todas as variáveis necessárias
+   - Consulte o arquivo [GOOGLE_SHEETS_SETUP.md](./GOOGLE_SHEETS_SETUP.md) para obter as chaves
+   - Preencha todas as variáveis necessárias (Google Sheets API)
 
 4. **Inicie o servidor de desenvolvimento**
    ```bash
@@ -181,26 +182,10 @@ npm start
 Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis. Para uma lista completa, consulte `.env.example`.
 
 ```env
-# Firebase Configuration (Conta Principal)
-NEXT_PUBLIC_FIREBASE_API_KEY=sua_api_key_aqui
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=seu_auth_domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=seu_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=seu_storage_bucket
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=seu_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=seu_app_id
-
-# Firebase Admin (Backend)
-FIREBASE_ADMIN_PROJECT_ID=project_id
-FIREBASE_ADMIN_CLIENT_EMAIL=service_account_email
-FIREBASE_ADMIN_PRIVATE_KEY=private_key
-
-# Google Sheets API (Backend)
-GOOGLE_SHEET_ID=id_da_planilha
-GOOGLE_SERVICE_ACCOUNT_EMAIL=service-account@projeto.iam.gserviceaccount.com
-GOOGLE_SERVICE_ACCOUNT_BASE64=base64_encoded_json
-
-# Google Analytics
-NEXT_PUBLIC_GA_MEASUREMENT_ID=GA_ID
+# Google Sheets API Configuration
+GOOGLE_SHEET_ID=seu_id_da_planilha_aqui
+GOOGLE_SERVICE_ACCOUNT_EMAIL=seu-service-account@project.iam.gserviceaccount.com
+GOOGLE_SERVICE_ACCOUNT_BASE64=sua_chave_em_base64_aqui
 
 # Environment
 NODE_ENV=production
@@ -208,8 +193,7 @@ NODE_ENV=production
 
 **⚠️ Importante**: 
 - **NUNCA** commit o arquivo `.env` no Git
-- Todas as credenciais devem ser obtidas do **Cofre Central de Credenciais**
-- Chaves sensíveis (Admin) devem ser acessadas apenas no servidor (não no cliente)
+- A chave base64 deve ser a Service Account do Google Cloud codificada em base64
 - O arquivo `.env.example` deve ser mantido atualizado sem valores reais
 
 ### Configuração do Google Sheets
@@ -328,20 +312,22 @@ novo_pex/
 ## 🔐 Segurança
 
 ### Autenticação
-- Sistema de login com e-mail/senha utilizando Firebase Authentication
-- Senhas armazenadas com hash seguro gerenciado pelo Firebase
-- Tokens de autenticação renovados automaticamente
+- Autenticação básica por e-mail/senha através do Google Sheets
+- Senhas armazenadas com hash seguro na aba SENHAS da planilha
+- Sistema de tokens para reset de senha
+- Controle de acesso baseado em autenticação de usuário
 
 ### Chaves de API
 - Todas as credenciais são gerenciadas via **variáveis de ambiente**
-- Chaves sensíveis (Firebase Admin) acessadas apenas no backend
-- Frontend utiliza apenas chaves públicas seguras (NEXT_PUBLIC_*)
+- Credenciais da Google Sheets API acessadas apenas no backend
 - Nenhuma chave exposta diretamente no código (hardcode)
+- Service Account do Google Cloud codificada em base64
 
 ### Banco de Dados
-- **Conta Principal Corporativa** do Firebase gerenciada pelo Comitê
-- Regras de Segurança do Firestore aplicadas para controle de acesso
-- Acesso aos dados restrito por autenticação e autorização
+- **Google Sheets** como banco de dados seguro baseado em nuvem
+- Acesso restrito por permissões de compartilhamento do Google Drive
+- Múltiplas abas para organizar dados (DEVERIA, CRITERIOS RANKING, METAS, SENHAS)
+- Histórico automático de alterações via Google Drive
 
 ### Conformidade com Diretrizes
 Este projeto foi desenvolvido seguindo rigorosamente o **Documento de Diretrizes e Boas Práticas para o Desenvolvimento de Ferramentas de IA**:
@@ -354,6 +340,7 @@ Este projeto foi desenvolvido seguindo rigorosamente o **Documento de Diretrizes
 - ✅ Sem console.log em produção
 - ✅ Footer com crédito de desenvolvimento
 - ✅ Favicon e títulos HTML específicos
+- ✅ Design System consistente (Central de Dashboards)
 
 ## 🐛 Troubleshooting
 
@@ -366,7 +353,7 @@ npm install
 ### Erro: "process is not defined"
 **Solução**: Este erro ocorre quando variáveis de ambiente não estão configuradas. Verifique:
 1. Arquivo `.env` existe na raiz do projeto
-2. Todas as variáveis estão preenchidas
+2. Todas as variáveis de Google Sheets estão preenchidas
 3. Reinicie o servidor de desenvolvimento após criar/editar o `.env`
 
 ### Página não carrega ou erro 404
@@ -374,20 +361,12 @@ npm install
 - Limpe o cache do Next.js: `rm -rf .next`
 - Execute `npm run dev` novamente
 
-### Erro de autenticação Firebase
+### Erro ao buscar dados do Google Sheets
 **Solução**:
-- Verifique se as credenciais no `.env` estão corretas
-- Confirme que está usando a conta principal corporativa
-- Consulte o Cofre Central de Credenciais para chaves atualizadas
-
-### Pesos não aparecem nos indicadores
-**Solução**:
-- Verifique se a aba "CRITERIOS RANKING" está configurada corretamente
-- Confirme que os nomes dos indicadores correspondem aos esperados
-- Verifique se o quarter está selecionado no filtro
-
-### Erros de TypeScript/Lint
-**Solução**: Os erros mostrados são esperados antes da instalação das dependências. Execute `npm install` para resolvê-los.
+- Verifique se a Service Account está corretamente configurada
+- Confirme que a planilha está compartilhada com o e-mail da Service Account
+- Valide se as abas (DEVERIA, CRITERIOS RANKING, METAS, SENHAS) existem
+- Verifique se o GOOGLE_SHEET_ID está correto
 
 ## 👥 Contribuidores / Suporte
 
@@ -396,8 +375,8 @@ npm install
 **Organização**: gestaovivaeventos
 
 ### Suporte
-- Para dúvidas técnicas, consulte a documentação no Drive do projeto
-- Para acesso a credenciais, contacte o Comitê
+- Para dúvidas técnicas, consulte a documentação no repositório
+- Para configuração de Google Sheets, consulte [GOOGLE_SHEETS_SETUP.md](./GOOGLE_SHEETS_SETUP.md)
 - Para reportar bugs ou sugerir melhorias, abra uma issue no GitHub
 
 ### Processo de Contribuição
@@ -414,6 +393,6 @@ npm install
 
 ---
 
-**Versão**: 2.0.0  
+**Versão**: 2.1.0  
 **Última Atualização**: Novembro 2025  
 **Licença**: Proprietário - Gestão Viva Eventos
