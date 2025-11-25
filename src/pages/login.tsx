@@ -90,7 +90,6 @@ export default function LoginPage() {
         ...prev,
         error: 'Erro de conexão. Tente novamente.'
       }));
-      console.error('Login error:', err);
     } finally {
       setFormState(prev => ({ ...prev, loading: false }));
     }

@@ -54,7 +54,6 @@ export async function findUserByUsername(username: string): Promise<PasswordUser
     for (const sheet of metadata.data.sheets || []) {
       if (sheet.properties?.title?.toUpperCase() === 'SENHAS') {
         senhasGid = sheet.properties.sheetId;
-        console.log(`✅ Encontrou aba SENHAS com gid=${senhasGid}`);
         break;
       }
     }
@@ -76,8 +75,6 @@ export async function findUserByUsername(username: string): Promise<PasswordUser
     const csvText = await response.text();
     const lines = csvText.split('\n');
     const headerLine = lines[0].split(',');
-    
-    console.log(`[SENHAS] Headers = ${headerLine.join(' | ')}`);
 
     // Encontrar os índices das colunas
     const usernameIdx = headerLine.findIndex(h => h.trim().toLowerCase().includes('username'));
@@ -85,7 +82,6 @@ export async function findUserByUsername(username: string): Promise<PasswordUser
     const tokenIdx = headerLine.findIndex(h => h.trim().toLowerCase().includes('token_reset'));
     const tokenPrimeiraSenhaIdx = headerLine.findIndex(h => h.trim().toLowerCase().includes('token_primeira_senha'));
     
-    console.log(`[SENHAS] Indices - username=${usernameIdx}, senha=${senhaIdx}, token=${tokenIdx}, tokenPrimeiraSenha=${tokenPrimeiraSenhaIdx}`);
 
     if (usernameIdx === -1 || senhaIdx === -1) {
       console.error('❌ Colunas requeridas (username, senha) não encontradas na aba SENHAS');
@@ -105,10 +101,6 @@ export async function findUserByUsername(username: string): Promise<PasswordUser
         const tokenResetAdmin = cells[tokenIdx]?.trim().replace(/^"|"$/g, '') || '';
         const tokenPrimeiraSenha = cells[tokenPrimeiraSenhaIdx]?.trim().replace(/^"|"$/g, '') || '';
         const rowIndex = i + 1; // Linha no Google Sheets (1-indexed)
-
-        console.log(`✅ Usuário ${username} encontrado na linha ${rowIndex}`);
-        console.log(`Senha: ${senhaHash ? '(preenchida)' : '(vazia)'}`);
-        console.log(`Token Reset: ${tokenResetAdmin}, Token Primeira Senha: ${tokenPrimeiraSenha}`);
 
         return {
           username,
@@ -161,7 +153,6 @@ export async function updateUserPassword(rowIndex: number, newHash: string): Pro
 
     // Atualizar coluna C (Senha_Hash) na linha específica
     const range = `'SENHAS'!C${rowIndex}`;
-    console.log(`📝 Atualizando senha na linha ${rowIndex} (range: ${range})`);
 
     const response = await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
@@ -173,7 +164,6 @@ export async function updateUserPassword(rowIndex: number, newHash: string): Pro
     });
 
     if (response.status === 200) {
-      console.log(`✅ Senha atualizada com sucesso na linha ${rowIndex}`);
       return true;
     } else {
       console.error('Erro ao atualizar senha:', response.statusText);
@@ -201,12 +191,10 @@ export function validateResetToken(
 ): boolean {
   // Se senha está vazia, usar token de primeira senha
   if (!senhaHash || senhaHash.trim() === '') {
-    console.log('[VALIDACAO] Senha vazia - validando com Token_primeira_senha');
     return providedToken === tokenPrimeiraSenha && tokenPrimeiraSenha.length > 0;
   }
 
   // Se senha está preenchida, usar token de reset
-  console.log('[VALIDACAO] Senha preenchida - validando com Token_Reset_Admin');
   return providedToken === tokenResetAdmin && tokenResetAdmin.length > 0;
 }
 

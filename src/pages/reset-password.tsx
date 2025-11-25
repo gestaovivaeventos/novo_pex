@@ -123,7 +123,6 @@ export default function ResetPasswordPage() {
         ...prev,
         error: 'Erro de conexão. Tente novamente.'
       }));
-      console.error('Reset password error:', err);
     } finally {
       setFormState(prev => ({ ...prev, loading: false }));
     }

@@ -155,10 +155,10 @@ function ResultadosContent() {
           // logs de carregamento removidos
           setDadosHistorico(dados);
         } else {
-          console.error('Erro ao carregar histórico:', response.status);
+          // Erro ao carregar histórico
         }
       } catch (error) {
-        console.error('Erro ao carregar histórico:', error);
+        // Erro ao carregar histórico
       }
     };
 
