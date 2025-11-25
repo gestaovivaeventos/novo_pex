@@ -111,8 +111,8 @@ export default function LoginPage() {
         }
 
         html, body {
-          width: 100vw;
-          height: 100vh;
+          width: 100%;
+          min-height: 100vh;
           font-family: 'Poppins', sans-serif;
           background-color: #212529;
           background-image: url('/images/capa_site.png');
@@ -120,15 +120,12 @@ export default function LoginPage() {
           background-position: center;
           background-attachment: fixed;
           color: #F8F9FA;
-          position: fixed;
-          top: 0;
-          left: 0;
-          overflow: hidden;
+          overflow-x: hidden;
         }
 
         #__next {
           width: 100%;
-          height: 100%;
+          min-height: 100vh;
         }
       `}</style>
 
@@ -136,17 +133,18 @@ export default function LoginPage() {
         .page-title {
           font-family: 'Orbitron', sans-serif;
           font-weight: 700;
-          font-size: 2.5em;
+          font-size: clamp(1.6em, 4.5vw, 2.2em);
           background: linear-gradient(180deg, #ffffff, #e9e9e9);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           text-shadow: 0 4px 8px rgba(0,0,0,0.7);
-          margin-bottom: 30px;
+          margin-bottom: clamp(12px, 2.5vw, 20px);
           text-transform: uppercase;
           letter-spacing: 1.5px;
           text-align: center;
-          max-width: 900px;
-          line-height: 1.2;
+          max-width: 100%;
+          width: 95%;
+          line-height: 1.1;
         }
 
         .login-heading {
@@ -169,15 +167,15 @@ export default function LoginPage() {
 
         .access-control {
           background-color: rgba(33, 37, 41, 0.95);
-          padding: 40px 30px;
+          padding: clamp(25px, 5vw, 40px) clamp(20px, 4vw, 30px);
           border-radius: 10px;
           border: 1px solid #495057;
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 20px;
+          gap: 15px;
           max-width: 420px;
-          width: 100%;
+          width: 90%;
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
@@ -188,8 +186,9 @@ export default function LoginPage() {
           border-radius: 6px;
           padding: 12px 15px;
           text-align: center;
-          font-size: 1.2em;
-          width: 280px;
+          font-size: 1em;
+          width: 100%;
+          max-width: 280px;
           letter-spacing: 1px;
           box-sizing: border-box;
         }
@@ -217,10 +216,11 @@ export default function LoginPage() {
           padding: 12px 25px;
           font-weight: bold;
           cursor: pointer;
-          font-size: 1.1em;
+          font-size: 1em;
           letter-spacing: 0.5px;
           transition: all 0.2s ease;
-          width: 280px;
+          width: 100%;
+          max-width: 280px;
         }
 
         .access-control button:hover:not(:disabled) {
@@ -240,9 +240,10 @@ export default function LoginPage() {
         }
 
         .company-logo {
-          height: 80px;
+          height: clamp(50px, 12vw, 80px);
           width: auto;
-          margin-top: 30px;
+          max-width: 90%;
+          margin-top: clamp(15px, 3vw, 30px);
         }
 
         #login-screen {
@@ -250,12 +251,10 @@ export default function LoginPage() {
           align-items: center;
           justify-content: center;
           width: 100%;
-          height: 100%;
-          padding: 20px;
+          min-height: 100vh;
+          padding: clamp(15px, 2vw, 30px) 20px;
           box-sizing: border-box;
-          position: fixed;
-          top: 0;
-          left: 0;
+          position: relative;
           z-index: 1;
         }
 
@@ -265,6 +264,7 @@ export default function LoginPage() {
           align-items: center;
           justify-content: center;
           text-align: center;
+          gap: clamp(15px, 2vw, 25px);
         }
 
         .form-container {

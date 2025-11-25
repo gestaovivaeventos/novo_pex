@@ -144,8 +144,8 @@ export default function ResetPasswordPage() {
         }
 
         html, body {
-          width: 100vw;
-          height: 100vh;
+          width: 100%;
+          min-height: 100vh;
           font-family: 'Poppins', sans-serif;
           background-color: #212529;
           background-image: url('/images/capa_site.png');
@@ -153,15 +153,12 @@ export default function ResetPasswordPage() {
           background-position: center;
           background-attachment: fixed;
           color: #F8F9FA;
-          position: fixed;
-          top: 0;
-          left: 0;
-          overflow: hidden;
+          overflow-x: hidden;
         }
 
         #__next {
           width: 100%;
-          height: 100%;
+          min-height: 100vh;
         }
       `}</style>
 
@@ -169,30 +166,31 @@ export default function ResetPasswordPage() {
         .page-title {
           font-family: 'Orbitron', sans-serif;
           font-weight: 700;
-          font-size: 2em;
+          font-size: clamp(1.5em, 5vw, 2em);
           background: linear-gradient(180deg, #ffffff, #e9e9e9);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           text-shadow: 0 4px 8px rgba(0,0,0,0.7);
-          margin-bottom: 20px;
+          margin-bottom: clamp(15px, 3vw, 20px);
           text-transform: uppercase;
           letter-spacing: 1.5px;
           text-align: center;
-          max-width: 900px;
+          max-width: 100%;
+          width: 90%;
           line-height: 1.2;
         }
 
         .page-subtitle {
-          font-size: 1.2em;
+          font-size: clamp(1em, 2.5vw, 1.1em);
           font-weight: 600;
           color: #F8F9FA;
-          margin-bottom: 8px;
+          margin-bottom: clamp(5px, 1vw, 8px);
         }
 
         .page-description {
-          font-size: 0.85em;
+          font-size: clamp(0.75em, 2vw, 0.85em);
           color: #adb5bd;
-          margin-bottom: 20px;
+          margin-bottom: clamp(10px, 1.5vw, 15px);
         }
 
         .access-control {
@@ -203,9 +201,9 @@ export default function ResetPasswordPage() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 12px;
-          max-width: 420px;
-          width: 100%;
+          gap: clamp(8px, 1.5vw, 12px);
+          width: 155%;
+          max-width: 700px;
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
@@ -215,10 +213,10 @@ export default function ResetPasswordPage() {
 
         .form-label {
           display: block;
-          font-size: 0.85em;
+          font-size: clamp(0.75em, 1.8vw, 0.85em);
           font-weight: 600;
           color: #adb5bd;
-          margin-bottom: 5px;
+          margin-bottom: clamp(3px, 0.8vw, 5px);
         }
 
         .form-input {
@@ -226,8 +224,8 @@ export default function ResetPasswordPage() {
           border: 1px solid #495057;
           color: #F8F9FA;
           border-radius: 6px;
-          padding: 10px 12px;
-          font-size: 0.95em;
+          padding: clamp(8px, 1.5vw, 10px) clamp(10px, 1.5vw, 12px);
+          font-size: clamp(0.85em, 2vw, 0.95em);
           width: 100%;
           letter-spacing: 0.5px;
           box-sizing: border-box;
@@ -245,9 +243,9 @@ export default function ResetPasswordPage() {
         }
 
         .form-helper {
-          font-size: 0.85em;
+          font-size: clamp(0.7em, 1.5vw, 0.85em);
           color: #6c757d;
-          margin-top: 5px;
+          margin-top: clamp(2px, 0.8vw, 5px);
         }
 
         .password-toggle {
@@ -278,8 +276,9 @@ export default function ResetPasswordPage() {
           background-color: rgba(220, 53, 69, 0.1);
           border: 1px solid #dc3545;
           border-radius: 6px;
-          padding: 12px;
+          padding: clamp(8px, 1.5vw, 12px);
           text-align: center;
+          font-size: clamp(0.8em, 1.8vw, 0.9em);
         }
 
         .success-message {
@@ -288,8 +287,9 @@ export default function ResetPasswordPage() {
           background-color: rgba(40, 167, 69, 0.1);
           border: 1px solid #28a745;
           border-radius: 6px;
-          padding: 12px;
+          padding: clamp(8px, 1.5vw, 12px);
           text-align: center;
+          font-size: clamp(0.8em, 1.8vw, 0.9em);
         }
 
         .form-content button[type="submit"] {
@@ -300,10 +300,10 @@ export default function ResetPasswordPage() {
           border-radius: 6px;
           box-shadow: 0 4px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
           text-shadow: 0 1px 1px rgba(0,0,0,0.2);
-          padding: 12px 25px;
+          padding: clamp(10px, 1.5vw, 12px) 25px;
           font-weight: bold;
           cursor: pointer;
-          font-size: 1.1em;
+          font-size: clamp(0.9em, 2vw, 1em);
           letter-spacing: 0.5px;
           transition: all 0.2s ease;
           width: 100%;
@@ -321,12 +321,12 @@ export default function ResetPasswordPage() {
         }
 
         .back-link {
-          margin-top: 15px;
+          margin-top: clamp(10px, 1.5vw, 15px);
           text-align: center;
         }
 
         .back-link a {
-          font-size: 0.9em;
+          font-size: clamp(0.8em, 2vw, 0.9em);
           color: #adb5bd;
           text-decoration: none;
           transition: color 0.2s ease;
@@ -341,12 +341,10 @@ export default function ResetPasswordPage() {
           align-items: center;
           justify-content: center;
           width: 100%;
-          height: 100%;
-          padding: 20px;
+          min-height: 100vh;
+          padding: clamp(15px, 2vw, 30px) 20px;
           box-sizing: border-box;
-          position: fixed;
-          top: 0;
-          left: 0;
+          position: relative;
           z-index: 1;
         }
 
@@ -356,6 +354,7 @@ export default function ResetPasswordPage() {
           align-items: center;
           justify-content: center;
           text-align: center;
+          gap: clamp(10px, 2vw, 20px);
         }
 
         .form-content {
@@ -375,9 +374,10 @@ export default function ResetPasswordPage() {
         }
 
         .company-logo {
-          height: 60px;
+          height: clamp(40px, 10vw, 60px);
           width: auto;
-          margin-top: 20px;
+          max-width: 90%;
+          margin-top: clamp(15px, 3vw, 20px);
         }
 
         footer {
@@ -399,10 +399,8 @@ export default function ResetPasswordPage() {
 
       <div id="reset-password-screen">
         <div id="reset-password-container">
-          <h1 className="page-title">PEX - PROGRAMA DE<br/>EXCELÊNCIA REDE VIVA</h1>
           <section className="access-control">
             <h2 className="page-subtitle">Redefinir Senha</h2>
-            <p className="page-description">Digite o token que você recebeu do administrador</p>
 
             {/* Mensagem de Sucesso */}
             {formState.success && (
@@ -443,7 +441,6 @@ export default function ResetPasswordPage() {
                     placeholder="Cole o token fornecido pelo admin"
                     disabled={formState.loading}
                   />
-                  <p className="form-helper">O token deve ser fornecido por um administrador</p>
                 </div>
 
                 {/* Campo Nova Senha */}
