@@ -138,9 +138,15 @@ export default function ResetPasswordPage() {
       </Head>
 
       <style jsx global>{`
-        html, body {
-          height: 100%;
+        * {
           margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        html, body {
+          width: 100vw;
+          height: 100vh;
           font-family: 'Poppins', sans-serif;
           background-color: #212529;
           background-image: url('/images/capa_site.png');
@@ -148,7 +154,15 @@ export default function ResetPasswordPage() {
           background-position: center;
           background-attachment: fixed;
           color: #F8F9FA;
+          position: fixed;
+          top: 0;
+          left: 0;
           overflow: hidden;
+        }
+
+        #__next {
+          width: 100%;
+          height: 100%;
         }
       `}</style>
 
@@ -327,8 +341,14 @@ export default function ResetPasswordPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          min-height: 100vh;
+          width: 100%;
+          height: 100%;
           padding: 20px;
+          box-sizing: border-box;
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: 1;
         }
 
         #reset-password-container {
